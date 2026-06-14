@@ -1,14 +1,22 @@
-from fastapi import FastAPI, Depends
+# backend/app/main.py
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.schemas import ChatRequest, ChatResponse
-from app.agents.router import route_query
-from app.agents.rag_engine import handle_rag
-from app.agents.sql_engine import handle_sql # Using SQL for your Neon demo
-from app.agents.synthesizer import generate_final_response
+import logging
 
-app = FastAPI(title="AutoFix AI Demo")
+from backend.app.database import get_db
+from backend.app.schemas import ChatRequest, ChatResponse
+
+# IMPORTING ONLY THE SQL AND SYNTHESIS LOGIC
+from agents_src.agent.support_agent import (
+    handle_sql, 
+    generate_final_response
+)
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="AutoFix AI Backend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,21 +29,24 @@ app.add_middleware(
 @app.post("/api/chat", response_model=ChatResponse)
 def process_chat(request: ChatRequest, db: Session = Depends(get_db)):
     """
-    Core AI Agent Endpoint.
+    Core AI Agent Endpoint connecting React UI to the agents_src logic.
     """
-    # 1. Grab the very last message in the array (the user's newest question)
-    latest_message = request.messages[-1].content
+    if not request.messages:
+        raise HTTPException(status_code=400, detail="Message history cannot be empty.")
 
-    # 2. Route based ONLY on the newest question
-    intent = route_query(latest_message)
+    try:
+        # Grab the user's newest question
+        latest_message = request.messages[-1].content
 
-    # 3. Fetch data using ONLY the newest question
-    if intent == "SQL":
+        # 1. Fetch data directly using the SQL Agent (No routing needed)
         raw_data = handle_sql(latest_message, db)
-    else:
-        raw_data = handle_rag(latest_message)
 
-    # 4. Synthesis (Pass the FULL history to LLM so it has memory)
-    final_output = generate_final_response(request.messages, raw_data)
+        # 2. Synthesize final answer
+        final_output = generate_final_response(request.messages, raw_data)
 
-    return ChatResponse(reply=final_output, source_used=intent)
+        # Hardcode source_used to SQL since RAG is gone
+        return ChatResponse(reply=final_output, source_used="SQL")
+    
+    except Exception as e:
+        logger.error(f"Agent Processing Error: {str(e)}")
+        raise HTTPException(status_code=500, detail="The AI assistant encountered an error.")
