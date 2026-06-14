@@ -26,6 +26,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from sqlalchemy import text
+
+@app.get("/health")
+def health_check(db: Session = Depends(get_db)):
+    try:
+        # Perform a dummy query to check DB connectivity
+        db.execute(text("SELECT 1"))
+        return {"status": "healthy", "database": "up"}
+    except Exception as e:
+        # If this fails, the DB is down, return a 503 error
+        raise HTTPException(status_code=503, detail="Database connection failed")
+
 @app.post("/api/chat", response_model=ChatResponse)
 def process_chat(request: ChatRequest, db: Session = Depends(get_db)):
     """
