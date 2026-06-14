@@ -13,3 +13,4 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     reply: str
     source_used: str
+    
