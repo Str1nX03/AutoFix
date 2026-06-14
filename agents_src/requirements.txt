@@ -1,0 +1,9 @@
+langchain
+langgraph
+langchain_groq
+langchain_core
+langchain_community
+pydantic
+pydantic_settings
+ipykernel
+langsmith
