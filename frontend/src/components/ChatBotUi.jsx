@@ -37,7 +37,7 @@ export default function ChatBotUi() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 30 }}
             transition={{ duration: 0.2 }}
-            className="relative flex h-[650px] w-[420px] flex-col overflow-hidden rounded-[32px] border border-[#d7cec2] bg-[#f4eee7] shadow-[0_20px_80px_rgba(0,0,0,0.15)]"
+            className="relative flex h-[520px] w-[420px] flex-col overflow-hidden rounded-[32px] border border-[#d7cec2] bg-[#f4eee7] shadow-[0_20px_80px_rgba(0,0,0,0.15)]"
           >
             {/* HEADER */}
 

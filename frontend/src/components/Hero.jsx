@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 
 export default function Hero() {
   return (
-    <section className="px-4 md:px-6 py-4">
+    <section id="product" className="px-4 md:px-6 py-4">
       {" "}
       <div className="max-w-7xl mx-auto">
         {" "}
@@ -45,7 +45,7 @@ export default function Hero() {
             <p className="mt-8 max-w-2xl text-[15px] leading-relaxed text-white/85">
               AutoFix is a private AI support agent trained on your docs,
               products, and policies — answering your customers 24/7 across
-              chat, email, and WhatsApp.
+              chat, email.
             </p>
 
             {/* Buttons */}
