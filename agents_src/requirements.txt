@@ -7,3 +7,5 @@ pydantic
 pydantic_settings
 ipykernel
 langsmith
+sqlalchemy
+python-dotenv
