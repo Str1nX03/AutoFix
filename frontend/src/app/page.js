@@ -1,25 +1,31 @@
-import ChatBotUi from "@/components/ChatBotUi";
+import dynamic from "next/dynamic";
+
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import Services from "@/components/Services";
-import DemoSection from "@/components/Demo";
-import WhyUs from "@/components/WhyUS";
-import FAQ from "@/components/FAQ";
-import FinalCTA from "@/components/FinalCTA";
-import Footer from "@/components/Footer";
+
+// Lazy load below-the-fold sections
+const Services = dynamic(() => import("@/components/Services"));
+const DemoSection = dynamic(() => import("@/components/Demo"));
+const ChatBotUi = dynamic(() => import("@/components/ChatBotUi"));
+const WhyUs = dynamic(() => import("@/components/WhyUS"));
+const FAQ = dynamic(() => import("@/components/FAQ"));
+const FinalCTA = dynamic(() => import("@/components/FinalCTA"));
+const Footer = dynamic(() => import("@/components/Footer"));
 
 export default function Home() {
   return (
-    <div className="">
+    <>
       <Navbar />
-      <Hero />
-      <Services />
-      <DemoSection />
-      <ChatBotUi />
-      <WhyUs />
-      <FAQ />
-      <FinalCTA />
+      <main>
+        <Hero />
+        <Services />
+        <DemoSection />
+        <ChatBotUi />
+        <WhyUs />
+        <FAQ />
+        <FinalCTA />
+      </main>
       <Footer />
-    </div>
+    </>
   );
 }

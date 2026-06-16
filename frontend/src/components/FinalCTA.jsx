@@ -1,74 +1,125 @@
 "use client";
 
-import React from "react";
+import { useState } from "react";
 
 export default function FinalCTA() {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const email = e.target.email.value;
+
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed");
+      }
+
+      setSuccess(true);
+
+      e.target.reset();
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <section id="FinalCTA" className="bg-[#f5f0e9] pb-16 font-sans">
-      {/* Reduced max-width from 7xl to 5xl for a tighter layout */}
+    <section
+      id="final-cta"
+      aria-labelledby="final-cta-heading"
+      className="bg-[#f5f0e9] pb-16 sm:pb-24"
+    >
       <div className="mx-auto max-w-5xl px-6">
-        {/* Reduced border radius and padding (p-6/p-8 instead of p-10/p-14) */}
-        <div className="bg-[#120905] overflow-hidden rounded-[24px] p-6 sm:p-8 lg:p-10 shadow-xl">
-          
-          <div className="grid items-center gap-6 md:grid-cols-[1.2fr_1fr]">
-            
-            {/* Left Side: Heading & Subtext */}
+        <div className="overflow-hidden rounded-[24px] bg-[#120905] p-6 shadow-xl sm:p-8 lg:p-10">
+          <div className="grid items-center gap-8 md:grid-cols-[1.2fr_1fr]">
+            {/* Content */}
             <div>
-              {/* Scaled down heading sizes (3rem instead of 4rem) */}
-              <h2 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-serif font-bold leading-[1.1] tracking-tight text-white">
+              <h2
+                id="final-cta-heading"
+                className="text-3xl font-serif font-bold leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-[2.75rem]"
+              >
                 Hire your first AI{" "}
-                <span className="bg-[#f4d21f] text-black px-2 py-0.5 inline-block -skew-x-2 transform my-1">
+                <span className="my-1 inline-block -skew-x-2 bg-[#f4d21f] px-2 py-0.5 text-black">
                   employee
                 </span>{" "}
                 this week.
               </h2>
-              {/* Reduced margin and text size */}
-              <p className="mt-4 text-[12px] sm:text-[13px] leading-relaxed text-white/60 max-w-lg">
-                A 12-page PDF with the rollout checklist, agent training brief, and ROI model we use
-                with every Growth customer.
+
+              <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/60">
+                Get the rollout checklist, agent training brief, and ROI model
+                we use with every Growth customer.
               </p>
             </div>
 
-            {/* Right Side: Form */}
+            {/* Form */}
             <form
-              onSubmit={(e) => e.preventDefault()}
-              className="flex flex-col gap-2.5 sm:flex-row items-stretch sm:items-center w-full"
+              onSubmit={handleSubmit}
+              className="flex w-full flex-col gap-3 sm:flex-row"
             >
+              <label htmlFor="email" className="sr-only">
+                Work email
+              </label>
+
               <input
+                id="email"
+                name="email"
                 type="email"
                 required
+                autoComplete="email"
                 placeholder="you@company.com"
                 className="
-                  flex-1 
-                  rounded-full 
-                  border border-white/20 
-                  bg-white/5 
-                  px-4 py-3 
-                  text-[14px] text-white 
-                  placeholder:text-white/40 
-                  outline-none 
-                  focus:border-[#ef4d00] 
+                  flex-1
+                  rounded-full
+                  border border-white/20
+                  bg-white/5
+                  px-5 py-3
+                  text-sm text-white
+                  placeholder:text-white/40
+                  outline-none
                   transition-colors
+                  focus:border-[#ef4d00]
                 "
               />
+
               <button
                 type="submit"
+                disabled={loading}
                 className="
-                  rounded-full 
-                  bg-[#ef4d00] 
-                  px-6 py-3 
-                  text-[14px] font-semibold text-white 
-                  hover:bg-[#d54400] 
-                  transition-colors 
-                  shrink-0
-                "
+    shrink-0
+    rounded-full
+    bg-[#ef4d00]
+    px-6 py-3
+    text-sm
+    font-semibold
+    text-white
+    transition-all
+    disabled:opacity-50
+  "
               >
-                Get the deploy guide
+                {loading ? "Sending..." : "Get the deploy guide"}
               </button>
             </form>
-            
+
+            {success && (
+              <p className="text-sm text-green-400">
+                Thanks! Check your inbox shortly.
+              </p>
+            )}
           </div>
-          
         </div>
       </div>
     </section>
