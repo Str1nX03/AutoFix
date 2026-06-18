@@ -25,9 +25,9 @@ const cards = [
     id: "03",
     label: "Internal Operations",
     title: "Answer your team, not just customers.",
-    body: "Plug AutoFix into Slack. It searches your wiki, runbooks, and tools so your team stops asking the same questions every week.",
-    metric: "$1.4M",
-    metricLabel: "Annual Savings",
+    body: "Plug AutoFix into Slack. It searches your docs, SOPs, wikis, and internal knowledge so your team gets answers instantly.",
+    metric: "24/7",
+    metricLabel: "INTERNAL ASSISTANCE",
     featured: false,
   },
 ];
@@ -89,7 +89,7 @@ export default function Services() {
                     {card.id} — {card.label}
                   </span>
 
-                  <Sparkles size={14} />
+                  {/* <Sparkles size={14} /> */}
                 </div>
 
                 <h3

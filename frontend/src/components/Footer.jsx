@@ -48,8 +48,8 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-[#d8d0c5]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-6 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">
-          <span>© 2026 AutoFix Inc. · San Francisco</span>
-          <span>Trained with care · Deployed in 48h</span>
+          <span>© 2026 AutoFix India</span>
+          <span>Built for modern support teams</span>
         </div>
       </div>
     </footer>

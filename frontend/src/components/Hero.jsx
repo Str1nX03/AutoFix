@@ -25,7 +25,7 @@ export default function Hero() {
           <div className="relative z-10 flex flex-col items-center justify-center min-h-[520px] px-6 py-16 text-center">
             {/* Label */}
             <p className="mb-8 text-[10px] font-medium uppercase tracking-[0.35em] text-white/75">
-              ✦ ISSUE 04 — SPRING 2026 RELEASE
+              ✦ TRUSTED BY GROWING BUSINESSES
             </p>
 
             {/* Heading */}
@@ -88,11 +88,11 @@ export default function Hero() {
 
                 <div>
                   <h3 className="text-4xl md:text-5xl font-bold text-white">
-                    412
+                    24/7
                   </h3>
 
                   <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
-                    Businesses Already Deployed
+                    ALWAYS AVAILABLE
                   </p>
                 </div>
               </div>
@@ -101,18 +101,30 @@ export default function Hero() {
         </div>
         {/* Bottom Ticker */}
         <div className="overflow-hidden rounded-b-xl bg-[#10220F] py-2">
-          <div className="flex whitespace-nowrap animate-[ticker_30s_linear_infinite] gap-10 text-[10px] uppercase tracking-widest text-[#8DD08D]">
-            <span>● CSAT 4.82 / 5 +0.02</span>
-            <span>● Channels Live 8 +1</span>
-            <span>● Languages 47 +2</span>
-            <span>● Deployed In 1.6d -0.2d</span>
-            <span>● Tickets Resolved 71.4% +0.3%</span>
+          <div className="flex w-max animate-[ticker_50s_linear_infinite]">
+            {/* First Set */}
+            <div className="flex gap-10 px-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-[#8DD08D]">
+              <span>● Available 24/7</span>
+              <span>● Trained On Your Business</span>
+              <span>● Human Handoff When Needed</span>
+              <span>● Deploy In 24 Hours</span>
+              <span>● Slack Integration</span>
+              <span>● WhatsApp Integration</span>
+              <span>● Zendesk Ready</span>
+              <span>● Multilingual Support</span>
+            </div>
 
-            <span>● CSAT 4.82 / 5 +0.02</span>
-            <span>● Channels Live 8 +1</span>
-            <span>● Languages 47 +2</span>
-            <span>● Deployed In 1.6d -0.2d</span>
-            <span>● Tickets Resolved 71.4% +0.3%</span>
+            {/* Duplicate Set */}
+            <div className="flex gap-10 px-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-[#8DD08D]">
+              <span>● Available 24/7</span>
+              <span>● Trained On Your Business</span>
+              <span>● Human Handoff When Needed</span>
+              <span>● Deploy In 24 Hours</span>
+              <span>● Slack Integration</span>
+              <span>● WhatsApp Integration</span>
+              <span>● Zendesk Ready</span>
+              <span>● Multilingual Support</span>
+            </div>
           </div>
         </div>
         <style jsx>{`
