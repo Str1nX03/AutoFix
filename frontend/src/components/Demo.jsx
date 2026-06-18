@@ -66,7 +66,6 @@ function ChatDemo() {
   const [input, setInput] = useState("");
   const [status, setStatus] = useState("idle"); 
   const scrollRef = useRef(null);
-  const inputRef = useRef(null);
 
   const [messages, setMessages] = useState([
     {
@@ -81,12 +80,6 @@ function ChatDemo() {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }
   }, [messages, status]);
-
-  useEffect(() => {
-    if (status === "idle" && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [status]);
 
   const busy = status === "submitted";
 
@@ -196,7 +189,6 @@ function ChatDemo() {
           className={`relative bg-white rounded-2xl border border-[#d8d0c5] p-2 flex items-center shadow-sm mx-2 ${messages.length > 1 ? 'mt-4 border-t' : ''}`}
         >
           <input
-            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Message AutoFix..."
