@@ -1,7 +1,7 @@
 import asyncio
 import sys
 from database.db import engine, Base
-from database.models import Client,Product 
+from database.models import Product 
 from sqlalchemy import text
 
 async def init_db():
