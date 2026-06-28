@@ -1,5 +1,6 @@
-from typing import TypedDict, Dict, Any, Optional
+from typing import TypedDict, Dict, Any, Optional, List
 from agents_src.utils import get_llm
+from langchain_core.prompts import ChatPromptTemplate
 from langgraph.graph import StateGraph, END
 from agents_src.prompt.support_prompt import (
     PRODUCT_DETECTION_PROMPT,
@@ -16,7 +17,7 @@ class AgentState(TypedDict):
     support_response: str
     
     session_id: Optional[str]
-    product_name: Optional[str]
+    extracted_product_names: List[str]
 
 class SupportAgent:
 
@@ -25,39 +26,58 @@ class SupportAgent:
         self.llm = get_llm()
         self.graph = self._build_graph()
 
-    def _product_detection_(self, state: AgentState) -> AgentState:
+    def _product_detection(self, state: AgentState) -> AgentState:
         """
-        Analyzes the input to extract the Product Name.
+        Analyzes the input to extract all Product Names.
         """
-        user_query = state.get("user_query", "")
-        # TODO: Implement actual logic to extract product name from user query
-        # using PRODUCT_DETECTION_PROMPT and an LLM.
-        # Placeholder: Check if "product" is in the query.
-        product_detected = "product" in user_query.lower()
+        user_query = state["user_query"]
+        
+        prompt = ChatPromptTemplate.from_template(PRODUCT_DETECTION_PROMPT)
+        
+        schema = {
+            "title": "ProductDetection",
+            "type": "object",
+            "properties": {
+                "extracted_product_names": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of product names extracted from the query"
+                }
+            },
+            "required": ["extracted_product_names"]
+        }
+        
+        structured_llm = self.llm.with_structured_output(schema)
+        
+        chain = prompt | structured_llm
+        result = chain.invoke({"user_query": user_query})
+        
+        extracted = result.get("extracted_product_names", []) if result else []
         
         return {
-            "product_name": "Example Product" if product_detected else None
+            "extracted_product_names": extracted
         }
 
     def _check_product_detected(self, state: AgentState) -> str:
         """
         Condition: Product Detected?
         """
-        if state.get("product_name"):
+        extracted = state.get("extracted_product_names")
+        if extracted and len(extracted) > 0:
             return "yes"
         return "no"
 
-    def _retrieve_product_info_(self, state: AgentState) -> AgentState:
+    def _retrieve_product_info(self, state: AgentState) -> AgentState:
         """
-        Retrieves product information based on the detected product name.
+        Retrieves product information based on the detected product names.
         """
-        product_name = state.get("product_name")
+        extracted = state.get("extracted_product_names", [])
         # TODO: Implement actual DB/API lookup here
         return {
-            "product_info": {"name": product_name, "status": "active", "details": "Sample product details"}
+            "product_info": {"names": extracted, "status": "active", "details": "Sample product details"}
         }
 
-    def _product_support_(self, state: AgentState) -> AgentState:
+    def _product_support(self, state: AgentState) -> AgentState:
         """
         Receives Product info + User Query and generates a response regarding the product.
         """
@@ -69,7 +89,7 @@ class SupportAgent:
         
         return {"support_response": response}
 
-    def _general_support_(self, state: AgentState) -> AgentState:
+    def _general_support(self, state: AgentState) -> AgentState:
         """
         Receives User Query and generates a response for non-product related questions.
         """
@@ -87,30 +107,30 @@ class SupportAgent:
         workflow = StateGraph(AgentState)
         
         # Add nodes
-        workflow.add_node("_product_detection_", self._product_detection_)
-        workflow.add_node("_retrieve_product_info_", self._retrieve_product_info_)
-        workflow.add_node("_product_support_", self._product_support_)
-        workflow.add_node("_general_support_", self._general_support_)
+        workflow.add_node("product_detection", self._product_detection)
+        workflow.add_node("retrieve_product_info", self._retrieve_product_info)
+        workflow.add_node("product_support", self._product_support)
+        workflow.add_node("general_support", self._general_support)
         
         # Entry point
-        workflow.set_entry_point("_product_detection_")
+        workflow.set_entry_point("product_detection")
         
         # Conditional routing after product detection
         workflow.add_conditional_edges(
-            "_product_detection_",
+            "product_detection",
             self._check_product_detected,
             {
-                "yes": "_retrieve_product_info_",
-                "no": "_general_support_"
+                "yes": "retrieve_product_info",
+                "no": "general_support"
             }
         )
         
         # If product is retrieved, pass to product support
-        workflow.add_edge("_retrieve_product_info_", "_product_support_")
+        workflow.add_edge("retrieve_product_info", "product_support")
         
         # Both support paths lead to the end of the graph
-        workflow.add_edge("_product_support_", END)
-        workflow.add_edge("_general_support_", END)
+        workflow.add_edge("product_support", END)
+        workflow.add_edge("general_support", END)
         
         return workflow.compile()
 
@@ -123,7 +143,7 @@ class SupportAgent:
             "session_id": session_id,
             "product_info": {},
             "support_response": "",
-            "product_name": None
+            "extracted_product_name": []
         }
         
         # Invoke the graph

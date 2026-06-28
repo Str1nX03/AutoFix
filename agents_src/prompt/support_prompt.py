@@ -1,6 +1,6 @@
 PRODUCT_DETECTION_PROMPT = """
-You are a product detection assistant. Your task is to analyze the user's query and extract the product name if one is mentioned.
-If a product is detected, output its name. Otherwise, output None.
+You are a product detection assistant. Your task is to analyze the user's query and extract all product names mentioned.
+Output the extracted product names. If no product is detected, output an empty list.
 
 User Query: {user_query}
 """
