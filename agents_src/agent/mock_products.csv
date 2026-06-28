@@ -1,0 +1,23 @@
+product_id,product_name,category,description,price_inr,status
+RZ01,Razer DeathAdder V3 Pro,Mouse,"Ergonomic wireless gaming mouse.",149.99,Active
+RZ02,Razer Viper V2 Pro,Mouse,"Ultra-lightweight wireless esports mouse.",149.99,Active
+RZ03,Razer Basilisk V3 Pro,Mouse,"Customizable wireless gaming mouse with Razer Chroma RGB.",159.99,Active
+RZ04,Razer Huntsman V2,Keyboard,"Optical gaming keyboard with near-zero latency.",199.99,Active
+RZ05,Razer BlackWidow V4 Pro,Keyboard,"Mechanical gaming keyboard with macro keys and underglow.",229.99,Active
+RZ06,Razer Ornata V3,Keyboard,"Low-profile mecha-membrane gaming keyboard.",69.99,Active
+RZ07,Razer Kraken V3 Pro,Headset,"Wireless gaming headset with haptic technology.",199.99,Active
+RZ08,Razer BlackShark V2 Pro,Headset,"Wireless premium esports gaming headset.",199.99,Active
+RZ09,Razer Barracuda Pro,Headset,"Wireless hybrid gaming and street headset with ANC.",249.99,Active
+RZ10,Razer Seiren Mini,Microphone,"Ultra-compact condenser microphone for streaming.",49.99,Active
+RZ11,Razer Seiren V2 Pro,Microphone,"Professional-grade dynamic USB microphone.",149.99,Active
+RZ12,Razer Kiyo Pro,Camera,"USB camera with high-performance adaptive light sensor.",199.99,Active
+RZ13,Razer Blade 15,Laptop,"Premium gaming laptop with NVIDIA RTX graphics.",2499.99,Active
+RZ14,Razer Blade 16,Laptop,"High-performance gaming laptop with dual-mode mini-LED display.",3299.99,Active
+RZ15,Razer Blade 18,Laptop,"Desktop replacement gaming laptop with 18-inch display.",3799.99,Active
+RZ16,Razer Iskur,Chair,"Ergonomic gaming chair with built-in lumbar support.",499.99,Active
+RZ17,Razer Enki,Chair,"Gaming chair designed for all-day comfort.",399.99,Active
+RZ18,Razer Leviathan V2,Audio,"Multi-driver PC soundbar with subwoofer and Chroma RGB.",249.99,Active
+RZ19,Razer Nommo V2 Pro,Audio,"Full-range 2.1 PC gaming speakers with wireless subwoofer.",429.99,Active
+RZ20,Razer Wolverine V2 Chroma,Controller,"Customizable Xbox and PC controller with RGB.",149.99,Active
+RZ21,Razer Kishi V2,Mobile,"Universal mobile gaming controller for smartphones.",99.99,Active
+RZ22,Razer Hammerhead True Wireless,Earbuds,"Wireless gaming earbuds with Chroma RGB.",129.99,Active

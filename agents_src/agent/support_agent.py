@@ -1,7 +1,6 @@
 from typing import TypedDict, Dict, Any, Optional
+from agents_src.utils import get_llm
 from langgraph.graph import StateGraph, END
-
-# Import prompts
 from agents_src.prompt.support_prompt import (
     PRODUCT_DETECTION_PROMPT,
     PRODUCT_SUPPORT_PROMPT,
@@ -22,6 +21,8 @@ class AgentState(TypedDict):
 class SupportAgent:
 
     def __init__(self):
+
+        self.llm = get_llm()
         self.graph = self._build_graph()
 
     def _product_detection_(self, state: AgentState) -> AgentState:
