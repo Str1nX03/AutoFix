@@ -1,6 +1,10 @@
 from typing import TypedDict, Dict, Any, Optional, List
 from agents_src.utils import get_llm
 from langchain_core.prompts import ChatPromptTemplate
+import pandas as pd
+import os
+import sys
+from agents_src.exception import CustomException
 from langgraph.graph import StateGraph, END
 from agents_src.prompt.support_prompt import (
     PRODUCT_DETECTION_PROMPT,
@@ -31,38 +35,43 @@ class SupportAgent:
         Analyzes the input to extract all Product Names.
         """
         user_query = state["user_query"]
+
+        try:
         
-        prompt = ChatPromptTemplate.from_template(PRODUCT_DETECTION_PROMPT)
+            prompt = ChatPromptTemplate.from_template(PRODUCT_DETECTION_PROMPT)
+            
+            schema = {
+                "title": "ProductDetection",
+                "type": "object",
+                "properties": {
+                    "extracted_product_names": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of product names extracted from the query"
+                    }
+                },
+                "required": ["extracted_product_names"]
+            }
+            
+            structured_llm = self.llm.with_structured_output(schema)
+            
+            chain = prompt | structured_llm
+            result = chain.invoke({"user_query": user_query})
+            
+            extracted = result.get("extracted_product_names", []) if result else []
+            
+            return {
+                "extracted_product_names": extracted
+            }
         
-        schema = {
-            "title": "ProductDetection",
-            "type": "object",
-            "properties": {
-                "extracted_product_names": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "List of product names extracted from the query"
-                }
-            },
-            "required": ["extracted_product_names"]
-        }
-        
-        structured_llm = self.llm.with_structured_output(schema)
-        
-        chain = prompt | structured_llm
-        result = chain.invoke({"user_query": user_query})
-        
-        extracted = result.get("extracted_product_names", []) if result else []
-        
-        return {
-            "extracted_product_names": extracted
-        }
+        except Exception as e:
+            raise CustomException(e,sys)
 
     def _check_product_detected(self, state: AgentState) -> str:
         """
         Condition: Product Detected?
         """
-        extracted = state.get("extracted_product_names")
+        extracted = state["extracted_product_names"]
         if extracted and len(extracted) > 0:
             return "yes"
         return "no"
@@ -71,21 +80,56 @@ class SupportAgent:
         """
         Retrieves product information based on the detected product names.
         """
-        extracted = state.get("extracted_product_names", [])
-        # TODO: Implement actual DB/API lookup here
-        return {
-            "product_info": {"names": extracted, "status": "active", "details": "Sample product details"}
-        }
+        extracted = state["extracted_product_names"]
+        product_info_list = []
+        
+        try:
+            # Construct path to mock_products.csv relative to this file
+            csv_path = os.path.join(os.path.dirname(__file__), "mock_products.csv")
+            df = pd.read_csv(csv_path)
+            
+            for query_name in extracted:
+                # First try to match by product_name
+                mask = df['product_name'].str.contains(query_name, case=False, na=False)
+                matches = df[mask]
+                
+                # If no product name matches, try matching by category
+                if matches.empty:
+                    mask_category = df['category'].str.contains(query_name, case=False, na=False)
+                    matches = df[mask_category]
+                
+                if not matches.empty:
+                    # Extract up to 2 products from the matches
+                    for _, row in matches.head(2).iterrows():
+                        product_info_list.append({
+                            "product_name": row["product_name"],
+                            "category": row["category"],
+                            "description": row["description"],
+                            "price": row["price_inr"],
+                            "pros": row["pros"],
+                            "cons": row["cons"]
+                        })
+                else:
+                    # Append a placeholder if not found
+                    product_info_list.append({"product_name": query_name, "error": "Not found in database."})
+                
+            return {
+            "product_info": {"products": product_info_list}
+            }    
+                    
+        except Exception as e:
+            print(f"Error loading product database: {e}")
 
     def _product_support(self, state: AgentState) -> AgentState:
         """
         Receives Product info + User Query and generates a response regarding the product.
         """
-        product_info = state.get("product_info", {})
-        user_query = state.get("user_query", "")
+        product_info = state["product_info"]
+        user_query = state["user_query"]
         
         # TODO: Implement actual LLM call using PRODUCT_SUPPORT_PROMPT
-        response = f"Support response for product: {product_info.get('name')}. Query: {user_query}"
+        product_names = [p.get('product_name') for p in product_info.get('products', [])]
+        response = f"Support response for products: {product_names}. Query: {user_query}"
         
         return {"support_response": response}
 
@@ -93,7 +137,7 @@ class SupportAgent:
         """
         Receives User Query and generates a response for non-product related questions.
         """
-        user_query = state.get("user_query", "")
+        user_query = state["user_query"]
         
         # TODO: Implement actual LLM call using GENERAL_SUPPORT_PROMPT
         response = f"General support response. Query: {user_query}"
