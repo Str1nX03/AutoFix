@@ -2,7 +2,7 @@
 
 
 # database/models.py
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String, Text , JSON
 from database.db import Base
 
 
@@ -14,8 +14,8 @@ class Product(Base):
     product_field = Column(String, nullable=False)    
     name = Column(String, index=True, nullable=False)
     description = Column(Text)
-    price = Column(String) # Storing as string for simplicity (e.g., "$50" or "Rs. 5000")
+    price = Column(Integer) 
     Product_Webpage_url = Column(String, nullable=False)
-    product_issues = Column(String, nullable=False)
-    
+    product_issues = Column(JSON, nullable=False)
+
 # In the future, you will add ChatSessions and ChatMessages tables here
