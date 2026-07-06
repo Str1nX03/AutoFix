@@ -1,4 +1,5 @@
-from typing import TypedDict, Dict, Any, Optional, List
+from typing import TypedDict, Dict, Any, Optional, List, Annotated
+import operator
 from agents_src.utils import get_llm
 from langchain_core.prompts import ChatPromptTemplate
 import pandas as pd
@@ -6,6 +7,7 @@ import os
 import sys
 from agents_src.exception import CustomException
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
 from agents_src.prompt.support_prompt import (
     PRODUCT_DETECTION_PROMPT,
     PRODUCT_SUPPORT_PROMPT,
@@ -22,12 +24,16 @@ class AgentState(TypedDict):
     
     session_id: Optional[str]
     extracted_product_names: List[str]
+    
+    chat_history: Annotated[List[str], operator.add]
+    shown_products: Annotated[List[str], operator.add]
 
 class SupportAgent:
 
     def __init__(self):
 
         self.llm = get_llm()
+        self.memory = MemorySaver()
         self.graph = self._build_graph()
 
     def _product_detection(self, state: AgentState) -> AgentState:
@@ -80,41 +86,52 @@ class SupportAgent:
         """
         Retrieves product information based on the detected product names.
         """
-        extracted = state["extracted_product_names"]
+        extracted = state.get("extracted_product_names", [])
+        shown_products = state.get("shown_products", [])
         product_info_list = []
+        new_shown_products = []
         
         try:
-            # Construct path to mock_products.csv relative to this file
+            
             csv_path = os.path.join(os.path.dirname(__file__), "mock_products.csv")
             df = pd.read_csv(csv_path)
             
             for query_name in extracted:
-                # First try to match by product_name
-                mask = df['product_name'].str.contains(query_name, case=False, na=False)
+                query_words = str(query_name).lower().split()
+                
+                # First try to match by product_name (all words must be present)
+                mask = df['product_name'].apply(lambda x: all(w in str(x).lower() for w in query_words))
                 matches = df[mask]
                 
-                # If no product name matches, try matching by category
+                # If no product name matches, try matching by category (any word present)
                 if matches.empty:
-                    mask_category = df['category'].str.contains(query_name, case=False, na=False)
+                    mask_category = df['category'].apply(lambda x: any(w in str(x).lower() for w in query_words))
                     matches = df[mask_category]
                 
                 if not matches.empty:
-                    # Extract up to 2 products from the matches
-                    for _, row in matches.head(2).iterrows():
-                        product_info_list.append({
-                            "product_name": row["product_name"],
-                            "category": row["category"],
-                            "description": row["description"],
-                            "price": row["price_inr"],
-                            "pros": row["pros"],
-                            "cons": row["cons"]
-                        })
+                    # Filter out products already shown
+                    unshown_matches = matches[~matches['product_name'].isin(shown_products)]
+                    
+                    if unshown_matches.empty:
+                        product_info_list.append({"product_name": query_name, "error": "All available products for this query have already been shown to the user. No more options left."})
+                    else:
+                        for _, row in unshown_matches.head(2).iterrows():
+                            product_info_list.append({
+                                "product_name": row["product_name"],
+                                "category": row["category"],
+                                "description": row["description"],
+                                "price": row["price_inr"],
+                                "pros": row["pros"],
+                                "cons": row["cons"]
+                            })
+                            new_shown_products.append(row["product_name"])
                 else:
-                    # Append a placeholder if not found
+                    
                     product_info_list.append({"product_name": query_name, "error": "Not found in database."})
                 
             return {
-            "product_info": {"products": product_info_list}
+                "product_info": {"products": product_info_list},
+                "shown_products": new_shown_products
             }    
                     
         except Exception as e:
@@ -126,23 +143,53 @@ class SupportAgent:
         """
         product_info = state["product_info"]
         user_query = state["user_query"]
+        chat_history_list = state.get("chat_history", [])
+        chat_history_str = "\n".join(chat_history_list)
         
-        # TODO: Implement actual LLM call using PRODUCT_SUPPORT_PROMPT
-        product_names = [p.get('product_name') for p in product_info.get('products', [])]
-        response = f"Support response for products: {product_names}. Query: {user_query}"
-        
-        return {"support_response": response}
+        try:
+            prompt = ChatPromptTemplate.from_template(PRODUCT_SUPPORT_PROMPT)
+            chain = prompt | self.llm
+            
+            formatted_info = str(product_info.get("products", []))
+            
+            result = chain.invoke({
+                "product_info": formatted_info,
+                "user_query": user_query,
+                "chat_history": chat_history_str
+            })
+            
+            response = result.content
+        except Exception as e:
+            raise CustomException(e, sys)
+            
+        return {
+            "support_response": response,
+            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
+        }
 
     def _general_support(self, state: AgentState) -> AgentState:
         """
         Receives User Query and generates a response for non-product related questions.
         """
         user_query = state["user_query"]
+        chat_history_list = state.get("chat_history", [])
+        chat_history_str = "\n".join(chat_history_list)
         
-        # TODO: Implement actual LLM call using GENERAL_SUPPORT_PROMPT
-        response = f"General support response. Query: {user_query}"
+        try:
+            prompt = ChatPromptTemplate.from_template(GENERAL_SUPPORT_PROMPT)
+            chain = prompt | self.llm
+            result = chain.invoke({
+                "user_query": user_query,
+                "chat_history": chat_history_str
+            })
+            response = result.content
+        except Exception as e:
+            raise CustomException(e, sys)
             
-        return {"support_response": response}
+        return {
+            "support_response": response,
+            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
+        }
 
     def _build_graph(self):
         """
@@ -176,20 +223,20 @@ class SupportAgent:
         workflow.add_edge("product_support", END)
         workflow.add_edge("general_support", END)
         
-        return workflow.compile()
+        return workflow.compile(checkpointer=self.memory)
 
     def run(self, query: str, session_id: str) -> Dict[str, Any]:
         """
         Executes the agent workflow with the given query and session_id.
         """
-        initial_state = {
+        config = {"configurable": {"thread_id": session_id}}
+        
+        # We only need to provide the new query, LangGraph checkpointer will handle the rest of the history
+        update_state = {
             "user_query": query,
             "session_id": session_id,
-            "product_info": {},
-            "support_response": "",
-            "extracted_product_name": []
         }
         
         # Invoke the graph
-        result = self.graph.invoke(initial_state)
+        result = self.graph.invoke(update_state, config=config)
         return result
