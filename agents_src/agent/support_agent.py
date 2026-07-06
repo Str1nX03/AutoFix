@@ -21,10 +21,8 @@ class AgentState(TypedDict):
     product_info: dict
     user_query: str
     support_response: str
-    
     session_id: Optional[str]
     extracted_product_names: List[str]
-    
     chat_history: Annotated[List[str], operator.add]
     shown_products: Annotated[List[str], operator.add]
 
@@ -99,17 +97,15 @@ class SupportAgent:
             for query_name in extracted:
                 query_words = str(query_name).lower().split()
                 
-                # First try to match by product_name (all words must be present)
                 mask = df['product_name'].apply(lambda x: all(w in str(x).lower() for w in query_words))
                 matches = df[mask]
                 
-                # If no product name matches, try matching by category (any word present)
                 if matches.empty:
                     mask_category = df['category'].apply(lambda x: any(w in str(x).lower() for w in query_words))
                     matches = df[mask_category]
                 
                 if not matches.empty:
-                    # Filter out products already shown
+                    
                     unshown_matches = matches[~matches['product_name'].isin(shown_products)]
                     
                     if unshown_matches.empty:
@@ -197,16 +193,12 @@ class SupportAgent:
         """
         workflow = StateGraph(AgentState)
         
-        # Add nodes
         workflow.add_node("product_detection", self._product_detection)
         workflow.add_node("retrieve_product_info", self._retrieve_product_info)
         workflow.add_node("product_support", self._product_support)
         workflow.add_node("general_support", self._general_support)
-        
-        # Entry point
+
         workflow.set_entry_point("product_detection")
-        
-        # Conditional routing after product detection
         workflow.add_conditional_edges(
             "product_detection",
             self._check_product_detected,
@@ -215,11 +207,8 @@ class SupportAgent:
                 "no": "general_support"
             }
         )
-        
-        # If product is retrieved, pass to product support
         workflow.add_edge("retrieve_product_info", "product_support")
         
-        # Both support paths lead to the end of the graph
         workflow.add_edge("product_support", END)
         workflow.add_edge("general_support", END)
         
@@ -230,13 +219,9 @@ class SupportAgent:
         Executes the agent workflow with the given query and session_id.
         """
         config = {"configurable": {"thread_id": session_id}}
-        
-        # We only need to provide the new query, LangGraph checkpointer will handle the rest of the history
         update_state = {
             "user_query": query,
             "session_id": session_id,
         }
-        
-        # Invoke the graph
         result = self.graph.invoke(update_state, config=config)
         return result
