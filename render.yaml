@@ -1,0 +1,31 @@
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Python FastAPI Backend Service
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: autofix-backend
+    env: python
+    buildCommand: pip install -r backend/requirements.txt -r agents_src/requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false # You will enter your Neon PostgreSQL connection string in the Render Dashboard
+      - key: GROQ_API_KEY
+        sync: false # You will enter your Groq API Key in the Render Dashboard
+      - key: ALLOWED_ORIGINS
+        value: https://autofix-frontend.onrender.com,http://localhost:3000 # Update with your frontend's actual URL if different
+
+  # ---------------------------------------------------------------------------
+  # 2. Next.js Frontend Service
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: autofix-frontend
+    env: node
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://autofix-backend.onrender.com # Update with your backend's actual URL if different
+      - key: NODE_VERSION
+        value: 20

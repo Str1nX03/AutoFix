@@ -1,5 +1,6 @@
 # backend/app/main.py
 import logging
+import os
 import uuid
 
 from fastapi import FastAPI, Depends, HTTPException
@@ -9,10 +10,7 @@ from sqlalchemy import text
 
 from backend.app.database import get_db
 from backend.app.schemas import ChatRequest, ChatResponse
-from agents_src.agent.support_agent import (
-    handle_sql, 
-    generate_final_response
-)
+from agents_src.agent.support_agent import SupportAgent
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,17 +18,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Initialize agent once at startup — not on every request
+agent = SupportAgent()
+
 app = FastAPI(title="AutoFix AI Backend")
+
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# main.py — replace current health check
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
     status = {"status": "healthy", "database": "up", "api": "up"}
@@ -46,49 +48,34 @@ def health_check(db: Session = Depends(get_db)):
 
 @app.post("/api/chat", response_model=ChatResponse)
 def process_chat(request: ChatRequest, db: Session = Depends(get_db)):
-    
-    request_id = str(uuid.uuid4())  # unique ID per request
+    request_id = str(uuid.uuid4())
     logger.info(f"[{request_id}] New request | session={request.session_id}")
-
-    if not request.messages:
-        raise HTTPException(status_code=400, detail="Message history cannot be empty.")
 
     try:
         latest_message = request.messages[-1].content
-        logger.info(f"[{request_id}] Calling handle_sql")
-        
-        raw_data = handle_sql(latest_message, db)
-        logger.info(f"[{request_id}] SQL success | rows={len(raw_data) if raw_data else 0}")
+        logger.info(f"[{request_id}] Running agent")
 
-        logger.info(f"[{request_id}] Calling generate_final_response")
-        final_output = generate_final_response(request.messages, raw_data)
-        logger.info(f"[{request_id}] Response generated successfully")
+        result = agent.run(
+            query=latest_message,
+            session_id=request.session_id
+        )
 
-        return ChatResponse(reply=final_output, source_used="SQL")
+        response = result.get("support_response", "I'm sorry, I couldn't process that.")
+        logger.info(f"[{request_id}] Agent responded successfully")
+
+        return ChatResponse(reply=response, source_used="agent")
 
     except HTTPException:
         raise
 
     except ConnectionError as e:
-        # DB is down
         logger.error(f"[{request_id}] DB connection failed: {str(e)}")
-        raise HTTPException(
-            status_code=503,
-            detail="Database unavailable. Please try again shortly."
-        )
+        raise HTTPException(status_code=503, detail="Database unavailable. Please try again shortly.")
 
     except TimeoutError as e:
-        # LLM or DB took too long
         logger.error(f"[{request_id}] Timeout: {str(e)}")
-        raise HTTPException(
-            status_code=504,
-            detail="Request timed out. Please try again."
-        )
+        raise HTTPException(status_code=504, detail="Request timed out. Please try again.")
 
     except Exception as e:
-        # Catch everything else — never expose internals
         logger.error(f"[{request_id}] Unexpected error: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Something went wrong. Please try again."
-        )
+        raise HTTPException(status_code=500, detail="Something went wrong. Please try again.")
