@@ -1,110 +1,242 @@
-# agents_src/agent/support_agent.py
+from typing import TypedDict, Dict, Any, Optional, List, Annotated
+import operator
+from agents_src.utils import get_llm
+from langchain_core.prompts import ChatPromptTemplate
+import pandas as pd
+import os
 import sys
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from typing import List
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-
-from agents_src.config import get_settings
-from agents_src.utils import get_llm, get_fast_llm
 from agents_src.exception import CustomException
-from agents_src.logger import logging
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
+from agents_src.prompt.support_prompt import (
+    PRODUCT_DETECTION_PROMPT,
+    PRODUCT_SUPPORT_PROMPT,
+    GENERAL_SUPPORT_PROMPT
+)
 
-
-def handle_sql(message: str, db: Session) -> str:
+class AgentState(TypedDict):
     """
-    Queries the products table based on user message keywords.
-    Returns relevant rows as a formatted string for the LLM.
+    Represents the state of our agent through the graph execution.
     """
-    try:
-        logging.info(f"handle_sql called with message: {message}")
+    product_info: dict
+    user_query: str
+    support_response: str
+    
+    session_id: Optional[str]
+    extracted_product_names: List[str]
+    
+    chat_history: Annotated[List[str], operator.add]
+    shown_products: Annotated[List[str], operator.add]
 
-        # Extract keyword using fast LLM
-        fast_llm = get_fast_llm()
-        keyword_response = fast_llm.invoke([
-            SystemMessage(content=(
-                "Extract the single most important product search keyword from the user message. "
-                "Reply with ONLY the keyword, nothing else. No punctuation, no explanation."
-                "Examples: 'keyboard', 'monitor', 'mouse', 'headphones'"
-            )),
-            HumanMessage(content=message)
-        ])
-        keyword = keyword_response.content.strip().lower()
-        logging.info(f"Extracted keyword: {keyword}")
+class SupportAgent:
 
-        # Query DB with keyword — parameterized, safe from SQL injection
-        result = db.execute(
-            text("""
-                SELECT product_name, sku, price, in_stock, description
-                FROM products
-                WHERE LOWER(product_name) LIKE :kw
-                OR LOWER(description) LIKE :kw
-            """),
-            {"kw": f"%{keyword}%"}
-        ).fetchall()
+    def __init__(self):
 
-        if not result:
-            # Fallback — return all products if no match
-            logging.info("No keyword match, returning all products")
-            result = db.execute(
-                text("SELECT product_name, sku, price, in_stock, description FROM products")
-            ).fetchall()
+        self.llm = get_llm()
+        self.memory = MemorySaver()
+        self.graph = self._build_graph()
 
-        # Format rows as readable string for LLM
-        formatted = []
-        for row in result:
-            stock_status = "In Stock" if row.in_stock > 0 else "Out of Stock"
-            formatted.append(
-                f"- {row.product_name} (SKU: {row.sku}) | "
-                f"Price: ${row.price} | "
-                f"{stock_status} ({row.in_stock} units) | "
-                f"{row.description}"
-            )
+    def _product_detection(self, state: AgentState) -> AgentState:
+        """
+        Analyzes the input to extract all Product Names.
+        """
+        user_query = state["user_query"]
 
-        output = "\n".join(formatted)
-        logging.info(f"SQL returned {len(result)} rows")
-        return output
+        try:
+        
+            prompt = ChatPromptTemplate.from_template(PRODUCT_DETECTION_PROMPT)
+            
+            schema = {
+                "title": "ProductDetection",
+                "type": "object",
+                "properties": {
+                    "extracted_product_names": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of product names extracted from the query"
+                    }
+                },
+                "required": ["extracted_product_names"]
+            }
+            
+            structured_llm = self.llm.with_structured_output(schema)
+            
+            chain = prompt | structured_llm
+            result = chain.invoke({"user_query": user_query})
+            
+            extracted = result.get("extracted_product_names", []) if result else []
+            
+            return {
+                "extracted_product_names": extracted
+            }
+        
+        except Exception as e:
+            raise CustomException(e,sys)
 
-    except Exception as e:
-        logging.error(f"handle_sql failed: {str(e)}")
-        raise CustomException(e, sys)
+    def _check_product_detected(self, state: AgentState) -> str:
+        """
+        Condition: Product Detected?
+        """
+        extracted = state["extracted_product_names"]
+        if extracted and len(extracted) > 0:
+            return "yes"
+        return "no"
 
+    def _retrieve_product_info(self, state: AgentState) -> AgentState:
+        """
+        Retrieves product information based on the detected product names.
+        """
+        extracted = state.get("extracted_product_names", [])
+        shown_products = state.get("shown_products", [])
+        product_info_list = []
+        new_shown_products = []
+        
+        try:
+            
+            csv_path = os.path.join(os.path.dirname(__file__), "mock_products.csv")
+            df = pd.read_csv(csv_path)
+            
+            for query_name in extracted:
+                query_words = str(query_name).lower().split()
+                
+                # First try to match by product_name (all words must be present)
+                mask = df['product_name'].apply(lambda x: all(w in str(x).lower() for w in query_words))
+                matches = df[mask]
+                
+                # If no product name matches, try matching by category (any word present)
+                if matches.empty:
+                    mask_category = df['category'].apply(lambda x: any(w in str(x).lower() for w in query_words))
+                    matches = df[mask_category]
+                
+                if not matches.empty:
+                    # Filter out products already shown
+                    unshown_matches = matches[~matches['product_name'].isin(shown_products)]
+                    
+                    if unshown_matches.empty:
+                        product_info_list.append({"product_name": query_name, "error": "All available products for this query have already been shown to the user. No more options left."})
+                    else:
+                        for _, row in unshown_matches.head(2).iterrows():
+                            product_info_list.append({
+                                "product_name": row["product_name"],
+                                "category": row["category"],
+                                "description": row["description"],
+                                "price": row["price_inr"],
+                                "pros": row["pros"],
+                                "cons": row["cons"]
+                            })
+                            new_shown_products.append(row["product_name"])
+                else:
+                    
+                    product_info_list.append({"product_name": query_name, "error": "Not found in database."})
+                
+            return {
+                "product_info": {"products": product_info_list},
+                "shown_products": new_shown_products
+            }    
+                    
+        except Exception as e:
+            print(f"Error loading product database: {e}")
 
-def generate_final_response(messages: List, raw_data: str) -> str:
-    """
-    Takes conversation history and DB results, returns natural LLM response.
-    """
-    try:
-        logging.info("generate_final_response called")
-        llm = get_llm()
+    def _product_support(self, state: AgentState) -> AgentState:
+        """
+        Receives Product info + User Query and generates a response regarding the product.
+        """
+        product_info = state["product_info"]
+        user_query = state["user_query"]
+        chat_history_list = state.get("chat_history", [])
+        chat_history_str = "\n".join(chat_history_list)
+        
+        try:
+            prompt = ChatPromptTemplate.from_template(PRODUCT_SUPPORT_PROMPT)
+            chain = prompt | self.llm
+            
+            formatted_info = str(product_info.get("products", []))
+            
+            result = chain.invoke({
+                "product_info": formatted_info,
+                "user_query": user_query,
+                "chat_history": chat_history_str
+            })
+            
+            response = result.content
+        except Exception as e:
+            raise CustomException(e, sys)
+            
+        return {
+            "support_response": response,
+            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
+        }
 
-        # Build message history for LLM
-        langchain_messages = [
-            SystemMessage(content=(
-                "You are a helpful product assistant. "
-                "Answer the user's question using ONLY the product data provided. "
-                "Be concise and friendly. "
-                "If a product is out of stock, mention it clearly. "
-                "Never make up products or prices not in the data. "
-                "If the data doesn't contain what the user asked for, say so honestly."
-                f"\n\nAvailable product data:\n{raw_data}"
-            ))
-        ]
+    def _general_support(self, state: AgentState) -> AgentState:
+        """
+        Receives User Query and generates a response for non-product related questions.
+        """
+        user_query = state["user_query"]
+        chat_history_list = state.get("chat_history", [])
+        chat_history_str = "\n".join(chat_history_list)
+        
+        try:
+            prompt = ChatPromptTemplate.from_template(GENERAL_SUPPORT_PROMPT)
+            chain = prompt | self.llm
+            result = chain.invoke({
+                "user_query": user_query,
+                "chat_history": chat_history_str
+            })
+            response = result.content
+        except Exception as e:
+            raise CustomException(e, sys)
+            
+        return {
+            "support_response": response,
+            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
+        }
 
-        # Add conversation history
-        for msg in messages[:-1]:  # all except latest
-            if msg.role == "user":
-                langchain_messages.append(HumanMessage(content=msg.content))
-            elif msg.role == "assistant":
-                langchain_messages.append(AIMessage(content=msg.content))
+    def _build_graph(self):
+        """
+        Builds and compiles the LangGraph workflow.
+        """
+        workflow = StateGraph(AgentState)
+        
+        # Add nodes
+        workflow.add_node("product_detection", self._product_detection)
+        workflow.add_node("retrieve_product_info", self._retrieve_product_info)
+        workflow.add_node("product_support", self._product_support)
+        workflow.add_node("general_support", self._general_support)
+        
+        # Entry point
+        workflow.set_entry_point("product_detection")
+        
+        # Conditional routing after product detection
+        workflow.add_conditional_edges(
+            "product_detection",
+            self._check_product_detected,
+            {
+                "yes": "retrieve_product_info",
+                "no": "general_support"
+            }
+        )
+        
+        # If product is retrieved, pass to product support
+        workflow.add_edge("retrieve_product_info", "product_support")
+        
+        # Both support paths lead to the end of the graph
+        workflow.add_edge("product_support", END)
+        workflow.add_edge("general_support", END)
+        
+        return workflow.compile(checkpointer=self.memory)
 
-        # Add latest user message
-        langchain_messages.append(HumanMessage(content=messages[-1].content))
-
-        response = llm.invoke(langchain_messages)
-        logging.info("LLM response generated successfully")
-        return response.content
-
-    except Exception as e:
-        logging.error(f"generate_final_response failed: {str(e)}")
-        raise CustomException(e, sys)
+    def run(self, query: str, session_id: str) -> Dict[str, Any]:
+        """
+        Executes the agent workflow with the given query and session_id.
+        """
+        config = {"configurable": {"thread_id": session_id}}
+        
+        # We only need to provide the new query, LangGraph checkpointer will handle the rest of the history
+        update_state = {
+            "user_query": query,
+            "session_id": session_id,
+        }
+        
+        # Invoke the graph
+        result = self.graph.invoke(update_state, config=config)
+        return result
