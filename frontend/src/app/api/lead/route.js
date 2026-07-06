@@ -1,8 +1,13 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error("RESEND_API_KEY is not set in the environment variables");
+    return Response.json({ error: "Email service is not configured" }, { status: 500 });
+  }
+
+  const resend = new Resend(apiKey);
   try {
     const { email } = await request.json();
 
