@@ -5,6 +5,7 @@ services:
   - type: web
     name: autofix-backend
     env: python
+    plan: free
     buildCommand: pip install -r backend/requirements.txt -r agents_src/requirements.txt
     startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -27,6 +28,7 @@ services:
   - type: web
     name: autofix-frontend
     env: node
+    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     startCommand: npm run start
