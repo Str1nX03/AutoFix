@@ -1,7 +1,6 @@
 from langchain_groq import ChatGroq
 from agents_src.config import get_settings
 from agents_src.exception import CustomException
-from agents_src.logger import logging
 import sys
 
 settings = get_settings()
@@ -20,15 +19,12 @@ def get_llm() -> ChatGroq:
     """
     try:
 
-        logging.info("Retrieving the Groq LLM")
-
         llm = ChatGroq(
             model = "openai/gpt-oss-20b",
             temperature = 0.2,
             max_tokens = 2000,
             groq_api_key = settings.GROQ_API_KEY
         )
-        logging.info("Groq LLM retrieved successfully")
 
         return llm
     
