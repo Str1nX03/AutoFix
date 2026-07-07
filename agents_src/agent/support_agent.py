@@ -6,7 +6,7 @@ import pandas as pd
 import os
 import sys
 from agents_src.exception import CustomException
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, END, START
 from langgraph.checkpoint.memory import MemorySaver
 from agents_src.prompt.support_prompt import (
     PRODUCT_DETECTION_PROMPT,
@@ -75,17 +75,22 @@ class SupportAgent:
         """
         Condition: Product Detected?
         """
-        extracted = state["extracted_product_names"]
-        if extracted and len(extracted) > 0:
-            return "yes"
-        return "no"
+        try:
+
+            extracted = state["extracted_product_names"]
+            if extracted and len(extracted) > 0:
+                return "yes"
+            return "no"
+        
+        except Exception as e:
+            raise CustomException(e,sys)
 
     def _retrieve_product_info(self, state: AgentState) -> AgentState:
         """
         Retrieves product information based on the detected product names.
         """
-        extracted = state.get("extracted_product_names", [])
-        shown_products = state.get("shown_products", [])
+        extracted = state["extracted_product_names"]
+        shown_products = state["shown_products"]
         product_info_list = []
         new_shown_products = []
         
@@ -139,14 +144,14 @@ class SupportAgent:
         """
         product_info = state["product_info"]
         user_query = state["user_query"]
-        chat_history_list = state.get("chat_history", [])
+        chat_history_list = state["chat_history"]
         chat_history_str = "\n".join(chat_history_list)
         
         try:
             prompt = ChatPromptTemplate.from_template(PRODUCT_SUPPORT_PROMPT)
             chain = prompt | self.llm
             
-            formatted_info = str(product_info.get("products", []))
+            formatted_info = str(product_info["products"])
             
             result = chain.invoke({
                 "product_info": formatted_info,
@@ -155,20 +160,21 @@ class SupportAgent:
             })
             
             response = result.content
-        except Exception as e:
-            raise CustomException(e, sys)
-            
-        return {
+
+            return {
             "support_response": response,
             "chat_history": [f"User: {user_query}", f"Agent: {response}"]
-        }
+            }
+
+        except Exception as e:
+            raise CustomException(e, sys)
 
     def _general_support(self, state: AgentState) -> AgentState:
         """
         Receives User Query and generates a response for non-product related questions.
         """
         user_query = state["user_query"]
-        chat_history_list = state.get("chat_history", [])
+        chat_history_list = state["chat_history"]
         chat_history_str = "\n".join(chat_history_list)
         
         try:
@@ -179,14 +185,15 @@ class SupportAgent:
                 "chat_history": chat_history_str
             })
             response = result.content
+
+            return {
+            "support_response": response,
+            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
+            }
+
         except Exception as e:
             raise CustomException(e, sys)
             
-        return {
-            "support_response": response,
-            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
-        }
-
     def _build_graph(self):
         """
         Builds and compiles the LangGraph workflow.
@@ -198,7 +205,7 @@ class SupportAgent:
         workflow.add_node("product_support", self._product_support)
         workflow.add_node("general_support", self._general_support)
 
-        workflow.set_entry_point("product_detection")
+        workflow.set_entry_point(START, "product_detection")
         workflow.add_conditional_edges(
             "product_detection",
             self._check_product_detected,
@@ -208,7 +215,6 @@ class SupportAgent:
             }
         )
         workflow.add_edge("retrieve_product_info", "product_support")
-        
         workflow.add_edge("product_support", END)
         workflow.add_edge("general_support", END)
         
