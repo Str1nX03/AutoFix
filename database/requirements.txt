@@ -6,3 +6,5 @@ asyncpg
 pandas
 pgvector
 google.genai
+huggingface_hub
+numpy

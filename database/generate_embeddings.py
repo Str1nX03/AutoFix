@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 from sqlalchemy.future import select
 from database.db import AsyncSessionLocal
-from database.models import Product, ProductEmbedding
+from database.models import Product
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -42,20 +42,9 @@ async def generate_and_store_embeddings():
             )
             embedding_values = response.embeddings[0].values
             
-            # Check if embedding already exists
-            existing_emb_query = await session.execute(
-                select(ProductEmbedding).where(ProductEmbedding.product_id == product.product_id)
-            )
-            existing_emb = existing_emb_query.scalar_one_or_none()
-            
-            if existing_emb:
-                existing_emb.embedding = embedding_values
-            else:
-                new_embedding = ProductEmbedding(
-                    product_id=product.product_id,
-                    embedding=embedding_values
-                )
-                session.add(new_embedding)
+            # Assign embedding to product
+            product.embedding = embedding_values
+            session.add(product)
             
             print(f"[{idx+1}/{len(products)}] Generated embedding for {product.name}")
             

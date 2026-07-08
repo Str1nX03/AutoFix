@@ -3,9 +3,8 @@ import os
 from google import genai
 from google.genai import types
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
 from database.db import AsyncSessionLocal
-from database.models import Product, ProductEmbedding
+from database.models import Product
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -27,9 +26,7 @@ async def search_products(query: str, top_k: int = 3):
         # Perform the vector similarity search using Cosine Distance (<=>)
         stmt = (
             select(Product)
-            .join(Product.embedding)
-            .options(selectinload(Product.embedding))
-            .order_by(ProductEmbedding.embedding.cosine_distance(query_embedding))
+            .order_by(Product.embedding.cosine_distance(query_embedding))
             .limit(top_k)
         )
         
