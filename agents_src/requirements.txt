@@ -9,3 +9,4 @@ ipykernel
 langsmith
 sqlalchemy
 python-dotenv
+pandas
