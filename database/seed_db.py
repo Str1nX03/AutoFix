@@ -36,9 +36,31 @@ dummy_data = [
 ]
 
 async def seed():
-    print("Seeding dummy product data to Neon database...")
+    print("Seeding dummy product data to Neon database and generating embeddings...")
+    from database.utils import generate_embeddings
+    
     async with AsyncSessionLocal() as session:
         for item in dummy_data:
+            combined_text = (
+                f"Product: {item['name']}. "
+                f"Type: {item['product_type']}. "
+                f"Field: {item['product_field']}. "
+                f"Price: ${item['price']}. "
+                f"Description: {item['description']}."
+            )
+            
+            print(f"Generating embedding for {item['name']}...")
+            raw_embedding = generate_embeddings(combined_text)
+            
+            # Truncate to 768 dimensions if it's larger (e.g., bge-large-en-v1.5)
+            if raw_embedding and len(raw_embedding) >= 768:
+                truncated_embedding = raw_embedding[:768]
+            else:
+                print(f"Warning: Embedding for {item['name']} is smaller than 768 dimensions.")
+                truncated_embedding = raw_embedding
+                
+            item["embedding"] = truncated_embedding
+            
             product = Product(**item)
             session.add(product)
         

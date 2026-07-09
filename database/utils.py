@@ -1,4 +1,4 @@
-from huggingface_hub import AsyncInferenceClient
+from huggingface_hub import InferenceClient
 from dotenv import load_dotenv
 import os
 import numpy as np
@@ -8,14 +8,14 @@ from agents_src.exception import CustomException
 
 load_dotenv(dotenv_path="database/.env")
 
-async def generate_embeddings(text: str)-> list[float]:
+def generate_embeddings(text: str)-> list[float]:
 
     try:
         HF_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
         EMD_MODEL=os.getenv("EMBEDDING_MODEL")
-        client = AsyncInferenceClient(token=HF_TOKEN)
+        client = InferenceClient(token=HF_TOKEN, provider="hf-inference")
 
-        result = await client.feature_extraction(text, model=EMD_MODEL)
+        result = client.feature_extraction(text, model=EMD_MODEL)
 
         if isinstance(result, np.ndarray):
             flat_result = result.flatten().tolist()
