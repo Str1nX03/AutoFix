@@ -1,5 +1,10 @@
 sqlalchemy
-psycopg2-binary
-python-dotenv
-psycopg2
-asyncpg
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.29
+asyncpg==0.29.0
+python-dotenv==1.0.1
+pgvector==0.2.5
+huggingface-hub>=0.24.0
+huggingface_hub
+numpy
+aiohttp
