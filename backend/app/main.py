@@ -60,7 +60,11 @@ def process_chat(request: ChatRequest, db: Session = Depends(get_db)):
             session_id=request.session_id
         )
 
-        response = result.get("support_response", "I'm sorry, I couldn't process that.")
+        # Check if the result is a string (new behavior) or a dictionary (old behavior)
+        if isinstance(result, str):
+            response = result
+        else:
+            response = result.get("support_response", "I'm sorry, I couldn't process that.")
         logger.info(f"[{request_id}] Agent responded successfully")
 
         return ChatResponse(reply=response, source_used="agent")
