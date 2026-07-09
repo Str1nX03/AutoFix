@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path="database/.env")
 HF_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
 
-async def search_products(query: str, top_k: int = 3):
+async def search_products(query: str, top_k: int = 10):
     """Search for products in the database using Hugging Face embeddings and Cross-Encoder reranking."""
     print(f"Searching for: '{query}'")
     
@@ -28,56 +28,42 @@ async def search_products(query: str, top_k: int = 3):
         # Fetch Top 10 candidates from Neon Postgres
         candidate_count = 10
         stmt = (
-            select(Product)
+            select(Product, Product.embedding.cosine_distance(query_embedding).label('distance'))
             .order_by(Product.embedding.cosine_distance(query_embedding))
             .limit(candidate_count)
         )
         
         result = await session.execute(stmt)
-        candidates = result.scalars().all()
+        candidate_rows = result.all()
         
-        if not candidates:
-            print("No products found.")
-            return []
-
-        print(f"Found {len(candidates)} candidates via Cosine Search. Reranking...")
+        # 3. Dynamic Margin Thresholding (The real fix!)
+        # Instead of a flaky reranker, we look at the absolute best match's score.
+        # We only keep other products if their distance is extremely close to the best match.
+        top_distance = candidate_rows[0][1]
+        strict_margin = 0.08  # Only allow items within 0.08 distance of the best match
         
-        # 3. STAGE 2: Cross-Encoder Reranking
-        client = InferenceClient(token=HF_TOKEN, provider="hf-inference")
-        
-        # Prepare pairs of (query, document) for the Cross-Encoder
-        # We concatenate product details to give the reranker max context
-        rerank_pairs = []
-        for product in candidates:
-            doc_text = f"Product: {product.name}. Type: {product.product_type}. Price: ${product.price}. Description: {product.description}"
-            rerank_pairs.append({"text": query, "text_pair": doc_text})
+        best_products = []
+        for row in candidate_rows:
+            product = row[0]
+            distance = row[1]
             
-        try:
-            # Query the HF Serverless API
-            rerank_scores = client.text_classification(
-                rerank_pairs, 
-                model="cross-encoder/ms-marco-MiniLM-L-6-v2"
-            )
-            
-            # The API returns a list of lists of dicts e.g. [[{'label': 'LABEL_0', 'score': 0.8}], ...]
-            # We map the scores back to the products
-            scored_candidates = []
-            for i, product in enumerate(candidates):
-                # Assuming the first label's score indicates relevance
-                score = rerank_scores[i][0]['score'] if rerank_scores[i] else 0.0
-                scored_candidates.append((score, product))
+            # If the product's distance is within the strict margin of our best match, keep it!
+            if distance <= top_distance + strict_margin:
+                best_products.append(product)
+        # 4. Heuristic Type Filtering (For pinpoint E-commerce accuracy)
+        # If the user explicitly asks for a specific product type (like "CPU"), 
+        # we strictly drop candidates that belong to a different product type.
+        query_lower = query.lower()
+        mentioned_types = set()
+        for p in best_products:
+            if p.product_type.lower() in query_lower:
+                mentioned_types.add(p.product_type.lower())
                 
-            # Sort by score descending (highest score first)
-            scored_candidates.sort(key=lambda x: x[0], reverse=True)
-            
-            # Extract the top_k products
-            best_products = [item[1] for item in scored_candidates[:top_k]]
-            
-        except Exception as e:
-            print(f"Cross-encoder reranking failed: {e}. Falling back to standard Cosine results.")
-            best_products = candidates[:top_k]
+        # If the user mentioned specific product types, STRICTLY filter out the others
+        if mentioned_types:
+            best_products = [p for p in best_products if p.product_type.lower() in mentioned_types]
         
-        print(f"\nTop {top_k} results:")
+        print(f"\nTop {len(best_products)} strictly matched results:")
         for idx, product in enumerate(best_products, 1):
             print(f"{idx}. {product.name} (${product.price}) - {product.product_type}")
             print(f"   Field: {product.product_field}")
