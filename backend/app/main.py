@@ -1,14 +1,13 @@
 # backend/app/main.py
 import logging
-import os
 import uuid
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-from backend.app.database import get_db
+from database.db import get_db
 from backend.app.schemas import ChatRequest, ChatResponse
 from agents_src.agent.support_agent import SupportAgent
 
@@ -18,26 +17,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize agent once at startup — not on every request
 agent = SupportAgent()
 
 app = FastAPI(title="AutoFix AI Backend")
 
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.get("/health")
-def health_check(db: Session = Depends(get_db)):
+async def health_check(db: AsyncSession = Depends(get_db)):
     status = {"status": "healthy", "database": "up", "api": "up"}
     try:
-        db.execute(text("SELECT 1"))
+        await db.execute(text("SELECT 1"))
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         raise HTTPException(
@@ -47,7 +43,7 @@ def health_check(db: Session = Depends(get_db)):
     return status
 
 @app.post("/api/chat", response_model=ChatResponse)
-def process_chat(request: ChatRequest, db: Session = Depends(get_db)):
+async def process_chat(request: ChatRequest, db: AsyncSession = Depends(get_db)):
     request_id = str(uuid.uuid4())
     logger.info(f"[{request_id}] New request | session={request.session_id}")
 
@@ -55,18 +51,15 @@ def process_chat(request: ChatRequest, db: Session = Depends(get_db)):
         latest_message = request.messages[-1].content
         logger.info(f"[{request_id}] Running agent")
 
-        result = agent.run(
+        # agent.run is sync (LangGraph), run in thread to not block event loop
+        import asyncio
+        response = await asyncio.to_thread(
+            agent.run,
             query=latest_message,
             session_id=request.session_id
         )
 
-        # Check if the result is a string (new behavior) or a dictionary (old behavior)
-        if isinstance(result, str):
-            response = result
-        else:
-            response = result.get("support_response", "I'm sorry, I couldn't process that.")
         logger.info(f"[{request_id}] Agent responded successfully")
-
         return ChatResponse(reply=response, source_used="agent")
 
     except HTTPException:
