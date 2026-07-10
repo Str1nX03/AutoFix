@@ -7,7 +7,8 @@ from database.models import Product
 from database.utils import generate_embeddings
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path="database/.env")
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+load_dotenv(dotenv_path=env_path)
 HF_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
 
 async def search_products(query: str, top_k: int = 10):

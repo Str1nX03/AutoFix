@@ -1,5 +1,6 @@
+# backend/app/models.py
 from sqlalchemy import Column, Integer, String, Numeric, Text
-from app.database import Base
+from backend.app.database import Base
 
 class Product(Base):
     __tablename__ = "products"
@@ -8,5 +9,5 @@ class Product(Base):
     product_name = Column(String, index=True, nullable=False)
     sku = Column(String, unique=True, nullable=True)
     price = Column(Numeric(10, 2), nullable=False)
-    in_stock = Column(Integer, default=0) # demoing inventory checks
+    in_stock = Column(Integer, default=0) 
     description = Column(Text, nullable=True)
