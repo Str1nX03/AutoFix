@@ -1,27 +1,35 @@
 const FAQ_ITEMS = [
   {
-    q: "How long does it take to deploy AutoFix on our site?",
-    a: "Typical onboarding is 24–48 hours. You share your help docs, product pages, and policies. We train your agent, you review answers on a private playground, then we ship a snippet to your site.",
+    q: "What is AutoFix?",
+    a: "AutoFix is an AI customer support assistant that securely connects to your business data. It understands your business using your own data and provides fast, accurate answers to customer questions through AI chat.",
   },
   {
-    q: "What happens when AutoFix doesn't know the answer?",
-    a: "It says so — clearly. It then either escalates to a human in Slack, Zendesk, or Intercom with a full transcript and a one-line intent summary, or captures the customer's email and books a follow-up.",
+    q: "How does AutoFix work?",
+    a: "AutoFix connects to your existing database or business systems. When a customer asks a question, it searches your business data using RAG, retrieves the most relevant information, and generates an accurate, context-aware response.",
   },
   {
-    q: "Does it actually replace agents, or just frustrate customers?",
-    a: "Across 412 deployments, AutoFix resolves 70%+ of conversations without human handoff and lifts CSAT by an average of 0.4 points. Your humans focus on the hard 30%.",
+    q: "How long does deployment take?",
+    a: "AutoFix is currently in the MVP stage. Deployment time depends on your existing infrastructure and how your business data is organized. During the MVP, setup is handled with our assistance to ensure AutoFix connects securely to your environment and retrieves information correctly.",
   },
   {
-    q: "Where does our data go? Is it secure?",
-    a: "Your training content and conversation logs live in an isolated workspace — never used to train shared models. SOC 2 Type II, GDPR, and DPA available on request.",
+    q: "Can AutoFix answer customer questions accurately?",
+    a: "Yes. Instead of relying on generic AI knowledge, AutoFix retrieves information directly from your connected business data. This helps ensure responses are accurate, relevant, and consistent with your business information.",
   },
   {
-    q: "What does it integrate with?",
-    a: "Slack, WhatsApp, Intercom, Zendesk, Shopify, HubSpot, Salesforce, Notion, Confluence, Gmail, and a public REST API for anything else.",
+    q: "What happens if AutoFix can't answer a question?",
+    a: "If a question falls outside the knowledge available to AutoFix, it will inform the user that the request is outside its scope rather than guessing or providing misleading information.",
   },
   {
-    q: "Can I see how it answers before going live?",
-    a: "Yes. Every deployment ships with a private review console where your team can rate answers and refine the agent before a single customer talks to it.",
+    q: "Which platforms does AutoFix integrate with?",
+    a: "AutoFix is designed to work with websites, live chat.",
+  },
+  {
+    q: "Is my business data secure?",
+    a: "Yes. AutoFix runs inside your own environment, so your business data never needs to leave your infrastructure. It securely retrieves only the information required to answer customer questions using RAG, giving you full control over your data and security.",
+  },
+  {
+    q: "Can I test AutoFix before deploying it?",
+    a: "Yes. As part of the MVP, you can request a live demo to see how AutoFix works, ask questions, and explore how it connects to your business data. We'll walk you through the setup process and discuss how it can fit your workflow.",
   },
 ];
 
@@ -69,9 +77,9 @@ export default function FAQ() {
             </h2>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-neutral-600">
-              Everything you need to know about AutoFix AI, deployment,
-              integrations, security, support, and how it fits into your
-              workflow.
+              Everything you need to know about how AutoFix connects to your
+              business data, answers customer questions with AI, protects your
+              information, and fits into your existing workflow.
             </p>
           </div>
 
