@@ -1,4 +1,3 @@
-# backend/app/main.py
 import logging
 import uuid
 
@@ -7,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
+# Updated to use the correct root database folder
 from database.db import get_db
 from backend.app.schemas import ChatRequest, ChatResponse
 from agents_src.agent.support_agent import SupportAgent
@@ -51,10 +51,8 @@ async def process_chat(request: ChatRequest, db: AsyncSession = Depends(get_db))
         latest_message = request.messages[-1].content
         logger.info(f"[{request_id}] Running agent")
 
-        # agent.run is sync (LangGraph), run in thread to not block event loop
-        import asyncio
-        response = await asyncio.to_thread(
-            agent.run,
+        # Call the async version of the agent directly
+        response = await agent.arun(
             query=latest_message,
             session_id=request.session_id
         )
