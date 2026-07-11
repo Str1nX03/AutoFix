@@ -149,12 +149,10 @@ class SupportAgent:
                 "user_query": user_query,
                 "chat_history": chat_history_str
             })
-            
-            response = result.get("support_response", "") if result else ""
 
             return {
-            "support_response": response,
-            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
+            "support_response": result,
+            "chat_history": [f"User: {user_query}", f"Agent: {result}"]
             }
 
         except Exception as e:
@@ -178,11 +176,9 @@ class SupportAgent:
                 "chat_history": chat_history_str
             })
             
-            response = result.get("support_response", "") if result else ""
-
             return {
-            "support_response": response,
-            "chat_history": [f"User: {user_query}", f"Agent: {response}"]
+            "support_response": result,
+            "chat_history": [f"User: {user_query}", f"Agent: {result}"]
             }
 
         except Exception as e:
