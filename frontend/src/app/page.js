@@ -1,16 +1,43 @@
 import dynamic from "next/dynamic";
+import { Suspense } from "react";
 
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 
-// Lazy load below-the-fold sections
-const Services = dynamic(() => import("@/components/Services"));
-const DemoSection = dynamic(() => import("@/components/Demo"));
-const ChatBotUi = dynamic(() => import("@/components/ChatBotUi"));
-const WhyUs = dynamic(() => import("@/components/WhyUS"));
-const FAQ = dynamic(() => import("@/components/FAQ"));
-const FinalCTA = dynamic(() => import("@/components/FinalCTA"));
-const Footer = dynamic(() => import("@/components/Footer"));
+// Skeleton/Loading component
+const SectionSkeleton = () => (
+  <div className="h-96 bg-gradient-to-br from-gray-100 to-gray-50 animate-pulse" />
+);
+
+// Lazy load below-the-fold sections with proper loading states
+const Services = dynamic(() => import("@/components/Services"), {
+  loading: () => <SectionSkeleton />,
+  ssr: true,
+});
+const DemoSection = dynamic(() => import("@/components/Demo"), {
+  loading: () => <SectionSkeleton />,
+  ssr: true,
+});
+const WhyUs = dynamic(() => import("@/components/WhyUS"), {
+  loading: () => <SectionSkeleton />,
+  ssr: true,
+});
+const FAQ = dynamic(() => import("@/components/FAQ"), {
+  loading: () => <SectionSkeleton />,
+  ssr: true,
+});
+const FinalCTA = dynamic(() => import("@/components/FinalCTA"), {
+  loading: () => <SectionSkeleton />,
+  ssr: true,
+});
+const Footer = dynamic(() => import("@/components/Footer"), {
+  loading: () => <SectionSkeleton />,
+  ssr: true,
+});
+
+export const metadata = {
+  title: "AI Chatbot Solutions | AutoFix",
+};
 
 export default function Home() {
   return (
@@ -18,14 +45,25 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <Services />
-        <DemoSection />
-        <ChatBotUi />
-        <WhyUs />
-        <FAQ />
-        <FinalCTA />
+        <Suspense fallback={<SectionSkeleton />}>
+          <Services />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton />}>
+          <DemoSection />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton />}>
+          <WhyUs />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton />}>
+          <FAQ />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton />}>
+          <FinalCTA />
+        </Suspense>
       </main>
-      <Footer />
+      <Suspense fallback={null}>
+        <Footer />
+      </Suspense>
     </>
   );
 }

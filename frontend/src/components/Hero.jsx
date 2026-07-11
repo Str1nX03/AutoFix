@@ -3,8 +3,9 @@
 import { ArrowUpRight } from "lucide-react";
 
 export default function Hero() {
+  
   return (
-    <section id="product" className="px-4 md:px-6 py-4">
+    <section id="product" className="scroll-mt-20 px-4 md:px-6 py-4">
       {" "}
       <div className="max-w-7xl mx-auto">
         {" "}
@@ -25,7 +26,7 @@ export default function Hero() {
           <div className="relative z-10 flex flex-col items-center justify-center min-h-[520px] px-6 py-16 text-center">
             {/* Label */}
             <p className="mb-8 text-[10px] font-medium uppercase tracking-[0.35em] text-white/75">
-              ✦ TRUSTED BY GROWING BUSINESSES
+              ✺ AI SUPPORT FOR MODERN BUSINESSES
             </p>
 
             {/* Heading */}
@@ -43,14 +44,19 @@ export default function Hero() {
 
             {/* Description */}
             <p className="mt-8 max-w-2xl text-[15px] leading-relaxed text-white/85">
-              AutoFix is a private AI support agent trained on your docs,
-              products, and policies — answering your customers 24/7 across
-              chat, email.
+              AutoFix is an AI chat assistant powered by your business data. It
+              securely connects to your database, retrieves relevant information
+              using RAG, and answers customer questions instantly. Currently
+              available as an MVP.
             </p>
 
             {/* Buttons */}
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-              <button className="group flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:scale-[1.02]">
+              <button
+              onClick={() => {
+                document.getElementById("demo")?.scrollIntoView({behavior: "smooth"})
+              }}
+              className="group flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:scale-[1.02]">
                 Try the live agent
                 <ArrowUpRight
                   size={16}
@@ -58,8 +64,12 @@ export default function Hero() {
                 />
               </button>
 
-              <button className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-                Schedule a deploy call
+              <button 
+              onClick={() => {
+                document.getElementById("FinalCTA")?.scrollIntoView({behavior: "smooth"})
+              }}
+              className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+                Give Your Feedback.
               </button>
             </div>
 
@@ -68,17 +78,17 @@ export default function Hero() {
               <div className="grid grid-cols-3 gap-6">
                 <div>
                   <h3 className="text-4xl md:text-5xl font-bold text-white">
-                    71.4%
+                    100%
                   </h3>
 
                   <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
-                    Tickets Resolved Without A Human
+                    PRIVATE KNOWLEDGE
                   </p>
                 </div>
 
                 <div>
                   <h3 className="text-4xl md:text-5xl font-bold text-white">
-                    1.2s
+                    3s
                   </h3>
 
                   <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
@@ -98,45 +108,44 @@ export default function Hero() {
               </div>
             </div>
           </div>
-        </div>
-        {/* Bottom Ticker */}
-        <div className="overflow-hidden rounded-b-xl bg-[#10220F] py-2">
-          <div className="flex w-max animate-[ticker_50s_linear_infinite]">
-            {/* First Set */}
-            <div className="flex gap-10 px-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-[#8DD08D]">
-              <span>● Available 24/7</span>
-              <span>● Trained On Your Business</span>
-              <span>● Human Handoff When Needed</span>
-              <span>● Deploy In 24 Hours</span>
-              <span>● Slack Integration</span>
-              <span>● WhatsApp Integration</span>
-              <span>● Zendesk Ready</span>
-              <span>● Multilingual Support</span>
-            </div>
 
-            {/* Duplicate Set */}
-            <div className="flex gap-10 px-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-[#8DD08D]">
-              <span>● Available 24/7</span>
-              <span>● Trained On Your Business</span>
-              <span>● Human Handoff When Needed</span>
-              <span>● Deploy In 24 Hours</span>
-              <span>● Slack Integration</span>
-              <span>● WhatsApp Integration</span>
-              <span>● Zendesk Ready</span>
-              <span>● Multilingual Support</span>
+          {/* Bottom Ticker */}
+          <div className="overflow-hidden rounded-b-xl bg-[#10220F] py-2">
+            <div className="flex w-max animate-[ticker_50s_linear_infinite]">
+              {/* First Set */}
+              <div className="flex gap-10 px-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-[#8DD08D]">
+                <span>● AI Employee for Your Business</span>
+                <span>● Connects to Your Database</span>
+                <span>● Instant Customer Replies</span>
+                <span>● Private & Secure</span>
+                <span>● 24/7 Customer Support</span>
+                <span>● No Coding Required</span>
+                <span>● Context-Aware Responses</span>
+              </div>
+
+              {/* Duplicate Set */}
+              <div className="flex gap-10 px-5 whitespace-nowrap text-[10px] uppercase tracking-widest text-[#8DD08D]">
+                <span>● AI Employee for Your Business</span>
+                <span>● Connects to Your Database</span>
+                <span>● Instant Customer Replies</span>
+                <span>● Private & Secure</span>
+                <span>● 24/7 Customer Support</span>
+                <span>● No Coding Required</span>
+                <span>● Context-Aware Responses</span>
+              </div>
             </div>
           </div>
+          <style jsx>{`
+            @keyframes ticker {
+              from {
+                transform: translateX(0);
+              }
+              to {
+                transform: translateX(-50%);
+              }
+            }
+          `}</style>
         </div>
-        <style jsx>{`
-          @keyframes ticker {
-            from {
-              transform: translateX(0);
-            }
-            to {
-              transform: translateX(-50%);
-            }
-          }
-        `}</style>
       </div>
     </section>
   );

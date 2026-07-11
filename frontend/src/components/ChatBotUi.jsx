@@ -136,10 +136,10 @@ export default function ChatBotUi() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 30 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-9999 bg-black/50 backdrop-blur-sm"
           >
             <div className="flex h-full w-full justify-center items-center p-4">
-              <div className="relative flex h-full max-h-[900px] w-full max-w-7xl flex-col overflow-hidden rounded-3xl border border-[#d7cec2] bg-[#f4eee7] shadow-2xl">
+              <div className="relative flex h-full max-h-225 w-full max-w-7xl flex-col overflow-hidden rounded-3xl border border-[#d7cec2] bg-[#f4eee7] shadow-2xl">
                 {/* HEADER */}
                 <div className="flex items-center justify-between border-b border-[#d7cec2] px-5 py-4 bg-white/50 backdrop-blur-md">
                   <div className="flex items-center gap-3">
@@ -195,7 +195,7 @@ export default function ChatBotUi() {
                       <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f25c05] text-white">
                         <Bot size={16} />
                       </div>
-                      <div className="max-w-[280px] px-4 py-3 rounded-3xl rounded-tl-md bg-white border border-[#d7cec2] text-neutral-500 text-[15px]">
+                      <div className="max-w-70 px-4 py-3 rounded-3xl rounded-tl-md bg-white border border-[#d7cec2] text-neutral-500 text-[15px]">
                         <span className="animate-pulse">Thinking...</span>
                       </div>
                     </div>

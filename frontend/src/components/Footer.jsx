@@ -6,10 +6,10 @@ import { Bot } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="bg-[#f5f0e9] border-t border-[#d8d0c5] font-sans">
-      <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 sm:grid-cols-2 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-0 px-0 py-0 sm:grid-cols-2 md:grid-cols-4">
         
         {/* Brand Column */}
-        <div>
+        {/* <div>
           <div className="flex items-center gap-2 font-serif text-xl font-bold text-black">
             <span className="grid h-7 w-7 place-items-center rounded-md bg-[#ef4d00] text-white shrink-0">
               <Bot className="h-4 w-4" />
@@ -19,10 +19,10 @@ export default function Footer() {
           <p className="mt-4 max-w-xs text-[14px] leading-relaxed text-neutral-600">
             The AI employee that knows your business and supports your customers 24/7. Founded 2025.
           </p>
-        </div>
+        </div> */}
 
         {/* Links Columns */}
-        {[
+        {/* {[
           { h: "Product", l: ["Capabilities", "Live demo", "Integrations", "Changelog"] },
           { h: "Company", l: ["About", "Customers", "Careers", "Press"] },
           { h: "Resources", l: ["Docs", "Deploy guide", "Security", "Privacy"] },
@@ -41,7 +41,7 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-        ))}
+        ))} */}
         
       </div>
 
@@ -49,7 +49,7 @@ export default function Footer() {
       <div className="border-t border-[#d8d0c5]">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-6 py-6 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-500">
           <span>© 2026 AutoFix India</span>
-          <span>Built for modern support teams</span>
+          <span>Built With College Friends</span>
         </div>
       </div>
     </footer>
