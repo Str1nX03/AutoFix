@@ -263,3 +263,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+daily_dev_log.md

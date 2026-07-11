@@ -6,7 +6,8 @@ import sys
 
 from agents_src.exception import CustomException
 
-load_dotenv(dotenv_path="database/.env")
+env_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
+load_dotenv(dotenv_path=env_path)
 
 def generate_embeddings(text: str)-> list[float]:
 

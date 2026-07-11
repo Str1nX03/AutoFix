@@ -2,7 +2,7 @@ from typing import TypedDict, Dict, Any, Optional, List, Annotated
 import operator
 from agents_src.utils import get_llm
 from langchain_core.prompts import ChatPromptTemplate
-import pandas as pd
+from database.rag_retriever import search_products
 import os
 import sys
 from agents_src.exception import CustomException
@@ -85,50 +85,39 @@ class SupportAgent:
         except Exception as e:
             raise CustomException(e,sys)
 
-    def _retrieve_product_info(self, state: AgentState) -> AgentState:
+    async def _retrieve_product_info(self, state: AgentState) -> AgentState:
         """
-        Retrieves product information based on the detected product names.
+        Retrieves product information based on the detected product names using Hugging Face Postgres RAG.
         """
-        extracted = state["extracted_product_names"]
+        user_query = state["user_query"]
         shown_products = state["shown_products"]
         product_info_list = []
         new_shown_products = []
         
         try:
+            # We pass the raw user query directly to our highly tuned RAG retriever!
+            best_products = await search_products(user_query, top_k=5)
             
-            csv_path = os.path.join(os.path.dirname(__file__), "mock_products.csv")
-            df = pd.read_csv(csv_path)
-            
-            for query_name in extracted:
-                query_words = str(query_name).lower().split()
-                
-                mask = df['product_name'].apply(lambda x: all(w in str(x).lower() for w in query_words))
-                matches = df[mask]
-                
-                if matches.empty:
-                    mask_category = df['category'].apply(lambda x: any(w in str(x).lower() for w in query_words))
-                    matches = df[mask_category]
-                
-                if not matches.empty:
+            if not best_products:
+                product_info_list.append({"product_name": "Unknown", "error": "Not found in database."})
+            else:
+                for p in best_products:
+                    # Skip if already shown in this session
+                    if p.name in shown_products:
+                        continue
+                        
+                    product_info_list.append({
+                        "product_name": p.name,
+                        "category": p.product_type,
+                        "description": p.description,
+                        "price": f"${p.price}",
+                        "link": p.Product_Webpage_url
+                    })
+                    new_shown_products.append(p.name)
                     
-                    unshown_matches = matches[~matches['product_name'].isin(shown_products)]
-                    
-                    if unshown_matches.empty:
-                        product_info_list.append({"product_name": query_name, "error": "All available products for this query have already been shown to the user. No more options left."})
-                    else:
-                        for _, row in unshown_matches.head(2).iterrows():
-                            product_info_list.append({
-                                "product_name": row["product_name"],
-                                "category": row["category"],
-                                "description": row["description"],
-                                "price": row["price_inr"],
-                                "pros": row["pros"],
-                                "cons": row["cons"]
-                            })
-                            new_shown_products.append(row["product_name"])
-                else:
-                    
-                    product_info_list.append({"product_name": query_name, "error": "Not found in database."})
+                # If everything matched was already shown
+                if not product_info_list:
+                    product_info_list.append({"product_name": "Multiple", "error": "All available products for this query have already been shown to the user. No more options left."})
                 
             return {
                 "product_info": {"products": product_info_list},
@@ -136,7 +125,7 @@ class SupportAgent:
             }    
                     
         except Exception as e:
-            print(f"Error loading product database: {e}")
+            print(f"Error retrieving from RAG database: {e}")
 
     def _product_support(self, state: AgentState) -> AgentState:
         """
@@ -252,7 +241,7 @@ class SupportAgent:
 
     def run(self, query: str, session_id: str) -> Dict[str, Any]:
         """
-        Executes the agent workflow with the given query and session_id.
+        Executes the agent workflow with the given query and session_id (synchronous wrapper).
         """
         config = {"configurable": {"thread_id": session_id}}
         update_state = {
@@ -260,4 +249,16 @@ class SupportAgent:
             "session_id": session_id,
         }
         result = self.graph.invoke(update_state, config=config)
+        return result["support_response"]
+
+    async def arun(self, query: str, session_id: str) -> Dict[str, Any]:
+        """
+        Executes the agent workflow asynchronously with the given query and session_id.
+        """
+        config = {"configurable": {"thread_id": session_id}}
+        update_state = {
+            "user_query": query,
+            "session_id": session_id,
+        }
+        result = await self.graph.ainvoke(update_state, config=config)
         return result["support_response"]
