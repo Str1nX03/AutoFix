@@ -7,13 +7,13 @@ from database.models import Product
 from database.utils import generate_embeddings
 from dotenv import load_dotenv
 
-env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+env_path = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".env"))
 load_dotenv(dotenv_path=env_path)
 HF_TOKEN = os.getenv("HUGGINGFACE_HUB_API_TOKEN")
 
 async def search_products(query: str, top_k: int = 10):
     """Search for products in the database using Hugging Face embeddings and Cross-Encoder reranking."""
-    print(f"Searching for: '{query}'")
+    
     
     # 1. Generate the embedding for the user's query
     raw_query_embedding = generate_embeddings(query)
@@ -64,12 +64,5 @@ async def search_products(query: str, top_k: int = 10):
         if mentioned_types:
             best_products = [p for p in best_products if p.product_type.lower() in mentioned_types]
         
-        print(f"\nTop {len(best_products)} strictly matched results:")
-        for idx, product in enumerate(best_products, 1):
-            print(f"{idx}. {product.name} (${product.price}) - {product.product_type}")
-            print(f"   Field: {product.product_field}")
-            print(f"   Description: {product.description}")
-            print(f"   Link: {product.Product_Webpage_url}\n")
-            
         return best_products
 

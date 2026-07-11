@@ -32,3 +32,8 @@
 * Connected the agent's product retrieval node directly to the `search_products(query)` Postgres vector database function, passing the raw user query for highly accurate semantic matching.
 * Upgraded the LangGraph execution flow by implementing an asynchronous `arun()` method.
 * Replaced hardcoded relative paths for dotenv loading across `database/db.py`, `database/rag_retriever.py`, and `database/utils.py` with dynamic absolute paths, fixing cross-directory path resolution errors during notebook testing.
+
+### 2. Environment & Config Refactoring
+* Removed hardcoded API secrets from `agents_src/agent/research.ipynb` and replaced them with dynamic `python-dotenv` variables to resolve GitHub Push Protection blocks.
+* Centralized all project secrets into a single, unified `.env` file at the root directory by merging `database/.env` and `.env_example`.
+* Updated `database/db.py`, `database/rag_retriever.py`, and `database/utils.py` to target the root `.env` file, enabling secure execution from any directory.
