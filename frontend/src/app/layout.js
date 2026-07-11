@@ -1,20 +1,24 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import UniqueVisitorTracker from "@/components/UniqueVisitorTracker";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
+  preload: true,
 });
 
 export const metadata = {
-  metadataBase: new URL("https://yourdomain.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://yourdomain.com"),
 
   title: {
     default: "AI Chatbot Solutions | AutoFix",
@@ -22,7 +26,7 @@ export const metadata = {
   },
 
   description:
-    "Build intelligent AI chatbots for customer support, lead generation, and business automation.",
+    "Build intelligent AI chatbots for customer support, lead generation, and business automation with AutoFix AI. Secure, fast, and powered by your business data.",
 
   keywords: [
     "AI chatbot",
@@ -31,6 +35,8 @@ export const metadata = {
     "business automation",
     "AI assistant",
     "conversational AI",
+    "RAG chatbot",
+    "database chatbot",
   ],
 
   authors: [{ name: "AutoFix" }],
@@ -40,6 +46,13 @@ export const metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
   },
 
   openGraph: {
@@ -47,6 +60,8 @@ export const metadata = {
     description:
       "Transform customer engagement with AI-powered chatbot solutions.",
     url: "https://yourdomain.com",
+    siteName: "AutoFix",
+    type: "website",
     siteName: "AutoFix",
     locale: "en_US",
     type: "website",
@@ -100,6 +115,7 @@ export default function RootLayout({ children }) {
             __html: JSON.stringify(jsonLd),
           }}
         />
+        <UniqueVisitorTracker />
         {children}
       </body>
     </html>

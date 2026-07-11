@@ -1,134 +1,94 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
-
-const cards = [
-  {
-    id: "01",
-    label: "Customer Support",
-    title: "Resolve 70% of tickets, instantly.",
-    body: "Trained on your help center, past tickets, and product docs. Answers in your voice, escalates cleanly to a human when needed.",
-    metric: "70%+",
-    metricLabel: "Auto Resolved",
-    featured: false,
-  },
-  {
-    id: "02",
-    label: "Sales & Onboarding",
-    title: "Qualify leads and onboard 24/7.",
-    body: "Greets visitors, books demos, captures intent, and walks new users through your product the same way your best CSM would.",
-    metric: "3.4×",
-    metricLabel: "Conversion Lift",
-    featured: true,
-  },
-  {
-    id: "03",
-    label: "Internal Operations",
-    title: "Answer your team, not just customers.",
-    body: "Plug AutoFix into Slack. It searches your docs, SOPs, wikis, and internal knowledge so your team gets answers instantly.",
-    metric: "24/7",
-    metricLabel: "INTERNAL ASSISTANCE",
-    featured: false,
-  },
-];
+import { PlayCircle } from "lucide-react";
 
 export default function Services() {
   return (
     <section className="bg-[#f6f0e8] py-24">
-      {" "}
       <div className="max-w-7xl mx-auto px-6">
-        {/* Top Content */}
 
+        {/* Header */}
         <div className="grid lg:grid-cols-2 gap-12 items-end">
           <div>
-            <h2
-              className="
-            text-[4rem]
-            md:text-[5.5rem]
-            font-black
-            leading-[0.9]
-            tracking-tight
-            text-black
-          "
-            >
-              Three jobs.
+            <p className="mb-4 text-[10px] uppercase tracking-[0.3em] text-[#8a7f75]">
+              ✺ PRODUCT WALKTHROUGH
+            </p>
+
+            <h2 className="text-[4rem] md:text-[5.5rem] font-black leading-[0.9] tracking-tight text-black">
+              See AutoFix
               <br />
-              One{" "}
-              <span className="bg-[#f4d21f] px-4 inline-block">employee.</span>
+              <span className="bg-[#f4d21f] px-4 inline-block">
+                in action.
+              </span>
             </h2>
           </div>
 
           <div>
             <p className="max-w-xl text-[18px] leading-relaxed text-[#5e554d]">
-              AutoFix isn't a chat widget. It's a single AI teammate that learns
-              your business once and shows up wherever your customers and team
-              need it — support, sales, ops.
+              Watch how AutoFix connects to your business data, retrieves
+              relevant information using RAG, and answers customer questions
+              instantly through AI chat.
             </p>
           </div>
         </div>
 
-        {/* Cards */}
+        {/* Video */}
+        <div className="mt-16 overflow-hidden rounded-[30px] border border-[#ddd3c8] bg-[#120905] shadow-[0_30px_80px_rgba(0,0,0,0.15)]">
 
-        <div className="mt-16 grid md:grid-cols-3 gap-5">
-          {cards.map((card) => (
-            <div
-              key={card.id}
-              className={`rounded-[24px] p-7 flex flex-col justify-between min-h-[360px]
-          ${
-            card.featured
-              ? "bg-[#ef4d00] text-white"
-              : "bg-[#f8f5f0] border border-[#ddd3c8] text-black"
-          }`}
-            >
-              <div>
-                <div
-                  className={`flex justify-between items-center text-[10px] uppercase tracking-[0.25em]
-              ${card.featured ? "text-white/80" : "text-[#8a7f75]"}`}
-                >
-                  <span>
-                    {card.id} — {card.label}
-                  </span>
-
-                  {/* <Sparkles size={14} /> */}
-                </div>
-
-                <h3
-                  className="
-                mt-8
-                text-[2rem]
-                font-black
-                leading-tight
-              "
-                >
-                  {card.title}
-                </h3>
-
-                <p
-                  className={`mt-5 text-[15px] leading-7
-              ${card.featured ? "text-white/85" : "text-[#5e554d]"}`}
-                >
-                  {card.body}
-                </p>
-              </div>
-
-              <div
-                className={`mt-10 pt-6 border-t
-            ${card.featured ? "border-white/20" : "border-[#ddd3c8]"}`}
-              >
-                <div className="flex justify-between items-end">
-                  <h4 className="text-5xl font-black">{card.metric}</h4>
-
-                  <span
-                    className={`text-[10px] uppercase tracking-[0.2em]
-                ${card.featured ? "text-white/70" : "text-[#8a7f75]"}`}
-                  >
-                    {card.metricLabel}
-                  </span>
-                </div>
-              </div>
+          {/* Top Bar */}
+          <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <span className="h-3 w-3 rounded-full bg-red-400" />
+              <span className="h-3 w-3 rounded-full bg-yellow-400" />
+              <span className="h-3 w-3 rounded-full bg-green-400" />
             </div>
-          ))}
+
+            <div className="text-[11px] uppercase tracking-[0.2em] text-white/50">
+              PRODUCT DEMO
+            </div>
+          </div>
+
+          {/* Video */}
+          <div className="relative h-[150px] sm:h-[400px] lg:h-[520px] bg-black">
+
+            <video
+              className="h-full w-full object-cover"
+              controls
+              preload="none"
+              playsInline
+              poster="/demo-thumbnail.jpg"
+              loading="lazy"
+            >
+              <source src="/demo.mp4" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+
+            {/* Remove this overlay once you have a real video */}
+            
+            <div className="absolute inset-0 flex items-center justify-center">
+              <button className="flex items-center gap-3 rounded-full bg-white px-6 py-3 font-semibold shadow-xl transition hover:scale-105">
+                <PlayCircle size={24} />
+                Watch Demo
+              </button>
+            </div>
+           
+
+          </div>
+
+          {/* Footer */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-white/60">
+
+            <span>AI CHAT</span>
+
+            <span>RAG</span>
+
+            <span>DATABASE CONNECTED</span>
+
+            <span>MVP PREVIEW</span>
+
+          </div>
         </div>
+
       </div>
     </section>
   );
