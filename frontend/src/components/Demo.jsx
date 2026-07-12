@@ -298,7 +298,38 @@ export function ChatDemo({ className }) {
               </div>
               <div className="max-w-[80%] pt-1 break-words">
                 <div className="prose prose-sm max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      // Add a wrapper to make the table scrollable on small screens
+                      table: ({ node, ...props }) => (
+                        <div className="overflow-x-auto my-4">
+                          <table
+                            className="min-w-full border-collapse border border-[var(--color-border)] text-sm"
+                            {...props}
+                          />
+                        </div>
+                      ),
+                      // Style the table header background
+                      thead: ({ node, ...props }) => (
+                        <thead className="bg-black/5" {...props} />
+                      ),
+                      // Add borders and padding to header cells
+                      th: ({ node, ...props }) => (
+                        <th
+                          className="border border-[var(--color-border)] px-4 py-2 text-left font-semibold text-black"
+                          {...props}
+                        />
+                      ),
+                      // Add borders and padding to body cells
+                      td: ({ node, ...props }) => (
+                        <td
+                          className="border border-[var(--color-border)] px-4 py-2"
+                          {...props}
+                        />
+                      ),
+                    }}
+                  >
                     {m.text}
                   </ReactMarkdown>
                 </div>
