@@ -58,7 +58,7 @@ class SupportAgent:
                 "required": ["extracted_product_names"]
             }
             
-            structured_llm = self.llm.with_structured_output(schema)
+            structured_llm = self.llm.with_structured_output(schema, method="json_mode")
             
             chain = prompt | structured_llm
             result = chain.invoke({"user_query": user_query})
