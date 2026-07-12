@@ -301,7 +301,7 @@ Contributions are welcome! Here's how to get started:
 | Dravin Kumar Sharma | [@Str1nX03](https://github.com/Str1nX03) |
 | Bibhanshu Singh | [@Bibhanshu16](https://github.com/Bibhanshu16) |
 | Shiv Prakash Singh | [@ShivSingh-17](https://github.com/ShivSingh-17) |
-| US Jagan Krishna | [jagankrishnaus](https://github.com/jagankrishnaus) |
+| US Jagan Krishna | [@jagankrishnaus](https://github.com/jagankrishnaus) |
 
 ---
 
