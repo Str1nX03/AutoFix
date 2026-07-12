@@ -169,7 +169,7 @@ class SupportAgent:
         try:
             prompt = ChatPromptTemplate.from_template(GENERAL_SUPPORT_PROMPT)
             
-            chain = prompt | self.llm | StrOutputParser
+            chain = prompt | self.llm | StrOutputParser()
             
             result = chain.invoke({
                 "user_query": user_query,
