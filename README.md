@@ -39,7 +39,7 @@
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        FRONTEND (Next.js 16)                    │
-│  Navbar · Hero · Services · Live Demo · FAQ · CTA · Footer     │
+│  Navbar · Hero · Services · Live Demo · FAQ · CTA · Footer      │
 │                     Framer Motion + Tailwind                    │
 └───────────────────────────┬─────────────────────────────────────┘
                             │  POST /api/chat
@@ -57,8 +57,8 @@
 │                   AGENTIC AI (LangGraph + Groq)                 │
 │                                                                 │
 │   ┌──────────────────┐                                          │
-│   │ Product Detection │─── yes ──▶ Retrieve Product Info (RAG)  │
-│   │    (LLM Node)     │              │                          │
+│   │Product Detection │─── yes ──▶ Retrieve Product Info (RAG)  │
+│   │    (LLM Node)    │              │                           │
 │   └────────┬─────────┘              ▼                           │
 │            │ no              Product Support (LLM)              │
 │            ▼                        │                           │
@@ -71,12 +71,12 @@
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              DATABASE (Neon PostgreSQL + pgvector)               │
+│              DATABASE (Neon PostgreSQL + pgvector)              │
 │                                                                 │
 │   products table ── name, type, description, price, url         │
 │                     embedding (Vector 768-dim)                  │
 │                                                                 │
-│   Embeddings: HuggingFace BAAI/bge-large-en-v1.5               │
+│   Embeddings: HuggingFace BAAI/bge-large-en-v1.5                │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -299,9 +299,9 @@ Contributions are welcome! Here's how to get started:
 | Contributor | GitHub |
 |---|---|
 | Dravin Kumar Sharma | [@Str1nX03](https://github.com/Str1nX03) |
-| Bibhanshu | [@Bibhanshu16](https://github.com/Bibhanshu16) |
-| Shiv Singh | [@ShivSingh-17](https://github.com/ShivSingh-17) |
-| Jagan Krishna | [jagankrishnaus](https://github.com/jagankrishnaus) |
+| Bibhanshu Singh | [@Bibhanshu16](https://github.com/Bibhanshu16) |
+| Shiv Prakash Singh | [@ShivSingh-17](https://github.com/ShivSingh-17) |
+| US Jagan Krishna | [jagankrishnaus](https://github.com/jagankrishnaus) |
 
 ---
 
