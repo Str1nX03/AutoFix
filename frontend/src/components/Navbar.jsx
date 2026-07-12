@@ -124,7 +124,7 @@ export default function Navbar() {
             className="flex items-center gap-1 md:gap-2 bg-black text-white px-4 py-2.5 md:px-5 md:py-3 rounded-full font-medium hover:bg-neutral-800 transition text-[13px] md:text-[15px] whitespace-nowrap"
           >
             <span className="hidden sm:inline">Contact</span>
-            <span className="sm:hidden">Demo</span>
+            <span className="sm:hidden">Contact</span>
             <ArrowUpRight className="w-4 h-4" />
           </Link>
 
