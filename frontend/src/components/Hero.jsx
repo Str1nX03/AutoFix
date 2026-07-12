@@ -1,14 +1,30 @@
 "use client";
 
 import { ArrowUpRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Hero() {
-  
+  const [visitorCount, setVisitorCount] = useState(null);
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const res = await fetch("/api/increment-visitor-count"); 
+        if (res.ok) {
+          const data = await res.json();
+          setVisitorCount(data.count);
+        }
+      } catch (error) {
+        console.error("Failed to fetch visitor count:", error);
+      }
+    };
+
+    fetchCount();
+  }, []);
+
   return (
     <section id="product" className="scroll-mt-20 px-4 md:px-6 py-4">
-      {" "}
       <div className="max-w-7xl mx-auto">
-        {" "}
         <div className="relative overflow-hidden rounded-[28px] bg-[#EF4D00]">
           {/* Glow */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_45%)]" />
@@ -53,10 +69,13 @@ export default function Hero() {
             {/* Buttons */}
             <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
               <button
-              onClick={() => {
-                document.getElementById("demo")?.scrollIntoView({behavior: "smooth"})
-              }}
-              className="group flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:scale-[1.02]">
+                onClick={() => {
+                  document
+                    .getElementById("demo")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="group flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition hover:scale-[1.02]"
+              >
                 Try the live agent
                 <ArrowUpRight
                   size={16}
@@ -64,23 +83,37 @@ export default function Hero() {
                 />
               </button>
 
-              <button 
-              onClick={() => {
-                document.getElementById("FinalCTA")?.scrollIntoView({behavior: "smooth"})
-              }}
-              className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
+              <button
+                onClick={() => {
+                  document
+                    .getElementById("FinalCTA")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
                 Give Your Feedback.
               </button>
             </div>
 
             {/* Stats */}
             <div className="mt-20 w-full max-w-6xl border-t border-white/20 pt-8">
-              <div className="grid grid-cols-3 gap-6">
+              {/* Changed grid to 4 columns to fit the new stat */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                
+                {/* 3. Live Visitor Count Display */}
+                <div>
+                  <h3 className="text-4xl md:text-5xl font-bold text-white">
+                    {visitorCount !== null ? visitorCount.toLocaleString() : "..."}
+                  </h3>
+                  <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
+                    TOTAL VISITORS
+                  </p>
+                </div>
+
                 <div>
                   <h3 className="text-4xl md:text-5xl font-bold text-white">
                     100%
                   </h3>
-
                   <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
                     PRIVATE KNOWLEDGE
                   </p>
@@ -90,7 +123,6 @@ export default function Hero() {
                   <h3 className="text-4xl md:text-5xl font-bold text-white">
                     3s
                   </h3>
-
                   <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
                     Median First Response
                   </p>
@@ -100,7 +132,6 @@ export default function Hero() {
                   <h3 className="text-4xl md:text-5xl font-bold text-white">
                     24/7
                   </h3>
-
                   <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
                     ALWAYS AVAILABLE
                   </p>

@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -18,6 +20,29 @@ export async function POST(request) {
 
     return new NextResponse("Counted successfully", { status: 200 });
 
+  } catch (error) {
+    console.error("Server Error:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+
+
+export async function GET() {
+  try {
+    const { data, error } = await supabase
+      .from("analytics")
+      .select("total_visitors")
+      .eq("id", 1)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Supabase GET Error:", error);
+      return new NextResponse("Failed to fetch count", { status: 500 });
+    }
+
+    const currentCount = data?.total_visitors || 0;
+    
+    return NextResponse.json({ count: currentCount }, { status: 200 });
   } catch (error) {
     console.error("Server Error:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
