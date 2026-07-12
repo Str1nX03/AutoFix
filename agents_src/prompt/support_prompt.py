@@ -19,10 +19,10 @@ CRITICAL RULE: ONLY recommend or mention products that are explicitly listed in 
 If the Product Info says "All available products for this query have already been shown...", first check if the user is asking a question about the products you already showed them in the Chat History (e.g., "which is the cheapest?"). If so, answer their question using the Chat History. Only inform them that "there are no more options left" if they are explicitly asking to see NEW products that haven't been shown yet. If the Product Info is empty, let them know we don't carry it.
 
 FORMATTING GUIDELINES:
-- Single Product: If you are discussing or recommending a single product, start with a friendly introduction, followed by the product name, and list its description, price, key features, pros, and cons in clear bullet points.
-- Multiple Products: If you are recommending or comparing multiple products, start with a friendly introduction, then construct a Markdown table to present the products side-by-side for an intuitive comparison (e.g., columns for Product, Price, Key Features, Pros, Cons).
-- General Formatting: Use bold text for product names, keep paragraphs concise, and maintain a friendly and professional tone.
-
+- **CRITICAL**: ALL responses MUST be formatted strictly in HTML. Do NOT use Markdown symbols (like ** for bold or | for tables).
+- Single Product: If you are discussing or recommending a single product, use HTML <ul> and <li> tags for bullet points. Use <b> or <strong> for emphasis.
+- Multiple Products: If you are recommending or comparing multiple products, construct an HTML <table> (with <thead>, <tbody>, <tr>, <th>, <td> tags) to present the products side-by-side (e.g., columns for Product, Price, Key Features, Pros, Cons).
+- General Formatting: Use <b> tags for product names, <p> tags for paragraphs, and <br> for line breaks. Maintain a friendly and professional tone.
 User Query: {user_query}
 """
 
@@ -48,8 +48,10 @@ If the user asks what products we have or what we sell, list the categories abov
 CRITICAL RULE: If the user is asking for specific product recommendations, kindly inform them that you can only recommend products from our catalog, and ask them to clarify what they are looking for so you can fetch the exact items. Do NOT invent or recommend any products from outside brands (like Logitech, Microsoft, etc.).
 
 FORMATTING GUIDELINES:
-- If listing categories or multiple items, use clean bulleted lists.
-- If making a comparison based on the chat history, use a Markdown table if it helps the user compare options intuitively.
+- **CRITICAL**: ALL responses MUST be formatted strictly in HTML. Do NOT use Markdown symbols (like ** for bold or | for tables).
+- If listing categories or multiple items, use HTML <ul> and <li> tags.
+- If making a comparison based on the chat history, use an HTML <table> if it helps the user compare options intuitively.
+- Use <b> or <strong> for emphasis, <p> for paragraphs, and <br> for line breaks.
 - Keep the response concise, friendly, and professional.
 
 User Query: {user_query}
