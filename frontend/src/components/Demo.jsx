@@ -1,7 +1,90 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  createContext,
+  useContext,
+  forwardRef,
+  useId,
+} from "react";
 import { Bot, Send, Check } from "lucide-react";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs) {
+  return twMerge(clsx(inputs));
+}
+
+
+const THEMES = { light: "", dark: ".dark" };
+
+const ChatContext = createContext(null);
+
+export function useChatConfig() {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error("useChatConfig must be used within a <ChatContainer />");
+  }
+  return context;
+}
+
+const ChatStyle = ({ id, config }) => {
+  const colorConfig = Object.entries(config).filter(
+    ([, config]) => config.theme || config.color
+  );
+
+  if (!colorConfig.length) return null;
+
+  return (
+    <style
+      dangerouslySetInnerHTML={{
+        __html: Object.entries(THEMES)
+          .map(
+            ([theme, prefix]) => `
+${prefix} [data-chat=${id}] {
+${colorConfig
+  .map(([key, itemConfig]) => {
+    const color = itemConfig.theme?.[theme] || itemConfig.color;
+    return color ? `  --color-${key}: ${color};` : null;
+  })
+  .join("\n")}
+}
+`
+          )
+          .join("\n"),
+      }}
+    />
+  );
+};
+
+export const ChatContainer = forwardRef(
+  ({ id, className, children, config, ...props }, ref) => {
+    const uniqueId = useId();
+    const chatId = `chat-${id || uniqueId.replace(/:/g, "")}`;
+
+    return (
+      <ChatContext.Provider value={{ config }}>
+        <div
+          data-chat={chatId}
+          ref={ref}
+          className={cn(
+            "flex flex-col overflow-hidden rounded-[32px] border border-[var(--color-border)] bg-[var(--color-background)] shadow-[0_10px_30px_rgba(0,0,0,0.08)]",
+            className
+          )}
+          {...props}
+        >
+          <ChatStyle id={chatId} config={config} />
+          {children}
+        </div>
+      </ChatContext.Provider>
+    );
+  }
+);
+ChatContainer.displayName = "ChatContainer";
+
+
 
 const SUGGESTED = [
   "What can you actually do?",
@@ -10,71 +93,81 @@ const SUGGESTED = [
   "Which tools do you integrate with?",
 ];
 
+// Define your color theme using the Config system
+const demoChatConfig = {
+  primary: { color: "#ef4d00" },
+  background: { color: "#f7f3ed" },
+  border: { color: "#d8d0c5" },
+  buttonDisabled: { color: "#f2b59f" },
+};
+
 export default function DemoSection() {
   return (
     <section id="demo" className="bg-[#f5f0e9] py-20 lg:py-28 font-sans">
       <div className="max-w-7xl mx-auto px-6">
-        {/* Changed items-center to items-stretch so both columns equal height */}
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-          {/* LEFT SIDE - Removed h-[600px], added h-full */}
-          <div className="bg-[#120905] rounded-[32px] p-8 lg:p-12 text-white flex flex-col justify-center h-full">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 font-bold mb-6">
-              ✺ SEE AUTOFIX IN ACTION
-            </p>
+        <div className="flex flex-col lg:flex-row items-stretch gap-8 lg:gap-6">
+          {/* LEFT SIDE */}
+          <div className="flex-shrink-0 w-full lg:w-1/2">
+            <div className="bg-[#120905] rounded-[32px] p-8 lg:p-12 text-white flex flex-col justify-center h-full">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-white/50 font-bold mb-6">
+                ✺ SEE AUTOFIX IN ACTION
+              </p>
 
-            {/* Slightly reduced text size from 4.5rem to 4rem for better fit */}
-            <h2 className="text-5xl lg:text-[4rem] font-serif font-bold leading-[1.05] tracking-tight">
-              See how your
-              <br />
-              customers
-              <br />
-              will experience{" "}
-              <span className="bg-[#f4d21f] text-black px-2 py-1 inline-block -skew-x-2 transform my-1">
-                AutoFix.
-              </span>
-              {/* <br />
-              would meet. */}
-            </h2>
+              <h2 className="text-5xl lg:text-[4rem] font-serif font-bold leading-[1.05] tracking-tight">
+                See how your
+                <br />
+                customers
+                <br />
+                will experience{" "}
+                <span className="bg-[#f4d21f] text-black px-2 py-1 inline-block -skew-x-2 transform my-1">
+                  AutoFix.
+                </span>
+              </h2>
 
-            <p className="mt-8 max-w-md text-white/70 leading-relaxed text-[15px]">
-              See how AutoFix understands customer questions, retrieves relevant
-              business information, and delivers accurate responses in real
-              time.
-            </p>
+              <p className="mt-8 max-w-md text-white/70 leading-relaxed text-[15px]">
+                See how AutoFix understands customer questions, retrieves
+                relevant business information, and delivers accurate responses
+                in real time.
+              </p>
 
-            <ul className="mt-10 space-y-4 text-white/90 text-[15px]">
-              {[
-                "Natural conversations",
-                "Private business knowledge",
-                "Fast AI chat responses",
-              ].map((text) => (
-                <li key={text} className="flex items-center gap-3">
-                  <Check
-                    className="w-5 h-5 text-[#ef4d00] shrink-0"
-                    strokeWidth={3}
-                  />
-                  {text}
-                </li>
-              ))}
-            </ul>
+              <ul className="mt-10 space-y-4 text-white/90 text-[15px]">
+                {[
+                  "Natural conversations",
+                  "Private business knowledge",
+                  "Fast AI chat responses",
+                ].map((text) => (
+                  <li key={text} className="flex items-center gap-3">
+                    <Check
+                      className="w-5 h-5 text-[var(--color-primary)] shrink-0"
+                      strokeWidth={3}
+                    />
+                    {text}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* RIGHT CHAT */}
-          <ChatDemo />
+          {/* RIGHT SIDE - CHAT */}
+          <div className="flex-shrink-0 w-full lg:w-1/2">
+            {/* The parent now dictates the sizing! */}
+            <ChatDemo className="w-full h-[700px]" />
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function ChatDemo() {
+export function ChatDemo({ className }) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const scrollRef = useRef(null);
+  const inputRef = useRef(null);
 
   const sessionId = useRef(
-    crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+    crypto.randomUUID?.() || Math.random().toString(36).slice(2)
   );
 
   const [messages, setMessages] = useState([
@@ -92,6 +185,12 @@ function ChatDemo() {
       });
     }
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading && messages.length > 1 && inputRef.current) {
+      inputRef.current.focus({ preventScroll: true });
+    }
+  }, [isLoading, messages.length]);
 
   const send = async (textToSend) => {
     if (isLoading) return;
@@ -114,7 +213,7 @@ function ChatDemo() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/chat`,
+        `${process.env.NEXT_PUBLIC_API_URL || ""}/api/chat`,
         {
           method: "POST",
           headers: {
@@ -127,7 +226,7 @@ function ChatDemo() {
               content: m.text,
             })),
           }),
-        },
+        }
       );
 
       const data = await response.json();
@@ -153,14 +252,17 @@ function ChatDemo() {
   };
 
   return (
-    <div className="bg-[#f7f3ed] rounded-[32px] border border-[#d8d0c5] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.08)] h-full min-h-[540px] flex flex-col">
+    <ChatContainer
+      config={demoChatConfig}
+      // Combines the parent's sizing classes (like w-full h-[550px]) with max-height logic
+      className={cn("h-full overflow-hidden", className)}
+    >
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#d8d0c5] flex items-center justify-between bg-white/50 shrink-0">
+      <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between bg-white/50 flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#ef4d00] flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
             <Bot className="w-4 h-4 text-white" />
           </div>
-
           <div>
             <div className="text-sm font-semibold text-black">AutoFix</div>
             <div className="flex items-center gap-1.5 text-[11px] text-neutral-500">
@@ -169,19 +271,21 @@ function ChatDemo() {
             </div>
           </div>
         </div>
-
-        <div className="text-[10px] uppercase tracking-[0.1em] font-semibold text-neutral-400">
+        <div className="text-[10px] uppercase tracking-widest font-semibold text-neutral-400">
           Demo
         </div>
       </div>
 
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
+      {/* Messages Container */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto px-6 py-6 space-y-6 min-h-0 scroll-smooth"
+      >
         {messages.map((m, index) => {
           if (m.role === "user") {
             return (
               <div key={index} className="flex justify-end">
-                <div className="max-w-[80%] text-[15px] text-black">
+                <div className="max-w-[75%] text-[15px] text-black bg-white border border-[var(--color-border)] px-4 py-2 rounded-2xl rounded-tr-sm break-words">
                   {m.text}
                 </div>
               </div>
@@ -189,25 +293,22 @@ function ChatDemo() {
           }
 
           return (
-            <div key={index} className="flex gap-4">
-              <div className="w-8 h-8 rounded-full bg-[#ef4d00] flex items-center justify-center shrink-0 mt-1">
+            <div key={index} className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 mt-1">
                 <Bot className="w-4 h-4 text-white" />
               </div>
-
-              <div className="max-w-[420px] text-[15px] leading-relaxed text-black pt-1">
+              <div className="max-w-[80%] text-[15px] leading-relaxed text-black pt-1 break-words">
                 {m.text}
               </div>
             </div>
           );
         })}
 
-        {/* Loading */}
         {isLoading && (
-          <div className="flex gap-4">
-            <div className="w-8 h-8 rounded-full bg-[#ef4d00] flex items-center justify-center shrink-0 mt-1">
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 mt-1">
               <Bot className="w-4 h-4 text-white" />
             </div>
-
             <div className="flex items-center gap-1 pt-3">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400" />
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400 [animation-delay:120ms]" />
@@ -217,16 +318,16 @@ function ChatDemo() {
         )}
       </div>
 
-      {/* Suggestions + Input */}
-      <div className="px-4 pb-4 bg-[#f7f3ed] shrink-0">
+      {/* Input Section */}
+      <div className="px-4 py-4 bg-[var(--color-background)] border-t border-[var(--color-border)] flex-shrink-0 space-y-3">
         {messages.length === 1 && (
-          <div className="flex flex-wrap gap-2 mb-4 px-2 border-t border-[#d8d0c5] pt-4">
+          <div className="flex flex-wrap gap-2">
             {SUGGESTED.map((s) => (
               <button
                 key={s}
                 onClick={() => send(s)}
                 disabled={isLoading}
-                className="rounded-full border border-[#d8d0c5] bg-white px-4 py-2 text-[13px] text-neutral-600 hover:bg-neutral-50 hover:border-neutral-300 transition-colors disabled:opacity-50 text-left"
+                className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-[12px] text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-50 whitespace-nowrap"
               >
                 {s}
               </button>
@@ -239,29 +340,31 @@ function ChatDemo() {
             e.preventDefault();
             send();
           }}
-          className={`relative bg-white rounded-2xl border border-[#d8d0c5] p-2 flex items-center shadow-sm mx-2 ${
-            messages.length > 1 ? "mt-4" : ""
-          }`}
+          className="relative flex items-center gap-2"
         >
           <input
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Message AutoFix..."
             disabled={isLoading}
-            className="w-full bg-transparent pl-4 pr-14 py-2 text-[15px] outline-none placeholder:text-neutral-400 disabled:opacity-50"
+            className="flex-1 bg-white rounded-2xl border border-[var(--color-border)] px-4 py-2 text-[15px] outline-none placeholder:text-neutral-400 disabled:opacity-50"
           />
 
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className={`absolute right-2 w-9 h-9 rounded-full text-white flex items-center justify-center transition-all ${
-              input.trim() ? "bg-[#ef4d00] hover:scale-105" : "bg-[#f2b59f]"
-            } disabled:opacity-50`}
+            className={cn(
+              "w-9 h-9 rounded-full text-white flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-50",
+              input.trim()
+                ? "bg-[var(--color-primary)] hover:scale-105"
+                : "bg-[var(--color-buttonDisabled)]"
+            )}
           >
             <Send className="w-4 h-4" />
           </button>
         </form>
       </div>
-    </div>
+    </ChatContainer>
   );
 }
