@@ -9,6 +9,8 @@ import React, {
   forwardRef,
   useId,
 } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Bot, Send, Check } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -16,7 +18,6 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
-
 
 const THEMES = { light: "", dark: ".dark" };
 
@@ -83,8 +84,6 @@ export const ChatContainer = forwardRef(
   }
 );
 ChatContainer.displayName = "ChatContainer";
-
-
 
 const SUGGESTED = [
   "What can you actually do?",
@@ -297,8 +296,12 @@ export function ChatDemo({ className }) {
               <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 mt-1">
                 <Bot className="w-4 h-4 text-white" />
               </div>
-              <div className="max-w-[80%] text-[15px] leading-relaxed text-black pt-1 break-words">
-                {m.text}
+              <div className="max-w-[80%] pt-1 break-words">
+                <div className="prose prose-sm max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {m.text}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           );
