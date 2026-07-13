@@ -121,7 +121,7 @@ export default function Hero() {
 
                 <div>
                   <h3 className="text-4xl md:text-5xl font-bold text-white">
-                    3s
+                    5s
                   </h3>
                   <p className="mt-2 text-[10px] uppercase tracking-[0.18em] text-white/70">
                     Median First Response
