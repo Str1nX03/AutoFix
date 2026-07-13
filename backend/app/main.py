@@ -27,6 +27,7 @@ app.add_middleware(
         "http://localhost:3000",
         "https://autofix-frontend-vln8.onrender.com"
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
