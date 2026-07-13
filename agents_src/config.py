@@ -5,6 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
 
     GROQ_API_KEYS: Optional[str] = None
+    GROQ_API_KEY: Optional[str] = None
 
     LANGCHAIN_TRACING_V2: Optional[str] = "true"
     LANGCHAIN_ENDPOINT: Optional[str] = "https://api.smith.langchain.com"
