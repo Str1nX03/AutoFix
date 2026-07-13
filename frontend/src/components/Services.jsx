@@ -1,8 +1,38 @@
 "use client";
 
-import { PlayCircle } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 export default function Services() {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoRef.current?.play().catch((error) => {
+              console.log("Autoplay prevented by browser:", error);
+            });
+          } else {
+            videoRef.current?.pause();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    if (videoRef.current) {
+      observer.observe(videoRef.current);
+    }
+
+    return () => {
+      if (videoRef.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        observer.unobserve(videoRef.current);
+      }
+    };
+  }, []);
+
   return (
     <section className="bg-[#f6f0e8] py-24">
       <div className="max-w-7xl mx-auto px-6">
@@ -32,61 +62,22 @@ export default function Services() {
           </div>
         </div>
 
-        {/* Video */}
-        <div className="mt-16 overflow-hidden rounded-[30px] border border-[#ddd3c8] bg-[#120905] shadow-[0_30px_80px_rgba(0,0,0,0.15)]">
-
-          {/* Top Bar */}
-          <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
-            <div className="flex items-center gap-3">
-              <span className="h-3 w-3 rounded-full bg-red-400" />
-              <span className="h-3 w-3 rounded-full bg-yellow-400" />
-              <span className="h-3 w-3 rounded-full bg-green-400" />
-            </div>
-
-            <div className="text-[11px] uppercase tracking-[0.2em] text-white/50">
-              PRODUCT DEMO
-            </div>
-          </div>
-
-          {/* Video */}
-          <div className="relative h-[150px] sm:h-[400px] lg:h-[520px] bg-black">
-
-            <video
-              className="h-full w-full object-cover"
-              controls
-              preload="none"
-              playsInline
-              poster="/demo-thumbnail.jpg"
-              loading="lazy"
-            >
-              <source src="/demo.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-
-            {/* Remove this overlay once you have a real video */}
-            
-            <div className="absolute inset-0 flex items-center justify-center">
-              <button className="flex items-center gap-3 rounded-full bg-white px-6 py-3 font-semibold shadow-xl transition hover:scale-105">
-                <PlayCircle size={24} />
-                Product Video In Progress
-              </button>
-            </div>
-           
-
-          </div>
-
-          {/* Footer */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-white/10 px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-white/60">
-
-            <span>AI CHAT</span>
-
-            <span>RAG</span>
-
-            <span>DATABASE CONNECTED</span>
-
-            <span>MVP PREVIEW</span>
-
-          </div>
+        {/* Video Only */}
+        {/* ADDED: max-w-5xl and mx-auto to constrain the overall size */}
+        <div className="mt-16 mx-auto max-w-5xl relative w-full aspect-video overflow-hidden rounded-[30px] shadow-[0_30px_80px_rgba(0,0,0,0.15)] bg-black">
+          <video
+            ref={videoRef}
+            className="h-full w-full object-cover"
+            controls
+            preload="none"
+            playsInline
+            loading="lazy"
+            loop
+            muted // Required for programmatic autoplay in modern browsers
+          >
+            <source src="/demo.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
 
       </div>
