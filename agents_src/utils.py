@@ -8,7 +8,7 @@ settings = get_settings()
 
 current_key_index = None
 
-def get_llm() -> ChatGroq:
+def get_llm(model: str | None = "openai/gpt-oss-20b") -> ChatGroq:
     """
     Initializes and returns the main large language model (LLM) instance.
     Uses the `openai/gpt-oss-20b` model via the Groq API.
@@ -29,9 +29,9 @@ def get_llm() -> ChatGroq:
 
         if len(keys) == 1:
             return ChatGroq(
-                model="openai/gpt-oss-20b",
-                temperature=0.2,
-                max_tokens=2000,
+                model=model,
+                temperature=0.1,
+                max_tokens=1200,
                 groq_api_key=keys[0]
             )
 
@@ -39,7 +39,7 @@ def get_llm() -> ChatGroq:
             current_key_index = random.randint(0, len(keys) - 1)
 
         llms = [
-            ChatGroq(model="openai/gpt-oss-20b", temperature=0.2, max_tokens=2000, groq_api_key=key)
+            ChatGroq(model=model, temperature=0.1, max_tokens=1200, groq_api_key=key)
             for key in keys
         ]
 
