@@ -129,18 +129,20 @@ export default function DemoSection() {
                 in real time.
               </p>
 
-              <ul className="mt-10 space-y-4 text-white/90 text-[15px]">
+              <ul className="mt-10 space-y-4 text-[15px] font-semibold">
                 {[
                   "Natural conversations",
                   "Private business knowledge",
                   "Fast AI chat responses",
                 ].map((text) => (
-                  <li key={text} className="flex items-center gap-3">
+                  <li key={text} className="flex items-center gap-3 ">
                     <Check
-                      className="w-5 h-5 text-[var(--color-primary)] shrink-0"
+                      className="w-5 h-5 text-[#EF4D00] shrink-0"
                       strokeWidth={3}
                     />
-                    {text}
+                    <div className="border-b-2 border-[#EF4D00]">
+                      {text}
+                    </div>
                   </li>
                 ))}
               </ul>
