@@ -127,12 +127,15 @@ class SupportAgent:
                     
         except Exception as e:
             print(f"Error retrieving from RAG database: {e}")
-
+            return {
+                "product_info": {"products": [{"product_name": "Error", "error": "Internal database error occurred."}]},
+                "shown_products": []
+            }
     def _product_support(self, state: AgentState) -> AgentState:
         """
         Receives Product info + User Query and generates a response regarding the product.
         """
-        product_info = state["product_info"]
+        product_info = state.get("product_info", {"products": []})
         user_query = state["user_query"]
         chat_history_list = state["chat_history"]
         chat_history_str = "\n".join(chat_history_list)
