@@ -11,7 +11,7 @@ import React, {
 } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Bot, Send, Check } from "lucide-react";
+import { Bot, Send, Check, Loader2 } from "lucide-react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -129,18 +129,18 @@ export default function DemoSection() {
                 in real time.
               </p>
 
-              <ul className="mt-10 space-y-4 text-white/90 text-[15px]">
+              <ul className="mt-10 space-y-4 text-[15px] font-semibold">
                 {[
                   "Natural conversations",
                   "Private business knowledge",
                   "Fast AI chat responses",
                 ].map((text) => (
-                  <li key={text} className="flex items-center gap-3">
+                  <li key={text} className="flex items-center gap-3 ">
                     <Check
-                      className="w-5 h-5 text-[var(--color-primary)] shrink-0"
+                      className="w-5 h-5 text-[#EF4D00] shrink-0"
                       strokeWidth={3}
                     />
-                    {text}
+                    <div className="border-b-2 border-[#EF4D00]">{text}</div>
                   </li>
                 ))}
               </ul>
@@ -149,7 +149,6 @@ export default function DemoSection() {
 
           {/* RIGHT SIDE - CHAT */}
           <div className="flex-shrink-0 w-full lg:w-1/2">
-            {/* The parent now dictates the sizing! */}
             <ChatDemo className="w-full h-[700px]" />
           </div>
         </div>
@@ -161,6 +160,10 @@ export default function DemoSection() {
 export function ChatDemo({ className }) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isBackendReady, setIsBackendReady] = useState(false);
+  const [isCheckingBackend, setIsCheckingBackend] = useState(true);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
 
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
@@ -175,6 +178,31 @@ export function ChatDemo({ className }) {
       text: "Hey 👋 I'm AutoFix. I'm trained on this whole product — ask me anything, or try one of the suggestions below.",
     },
   ]);
+
+  useEffect(() => {
+    let interval;
+
+    const checkBackend = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
+        const contentType = res.headers.get("content-type");
+
+        if (res.ok && contentType && contentType.includes("application/json")) {
+          setIsBackendReady(true);
+          setIsCheckingBackend(false);
+          setIsHovering(false);
+          clearInterval(interval);
+        }
+      } catch (error) {
+        console.log("Backend sleeping....");
+      }
+    };
+    checkBackend();
+
+    interval = setInterval(checkBackend, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -192,7 +220,7 @@ export function ChatDemo({ className }) {
   }, [isLoading, messages.length]);
 
   const send = async (textToSend) => {
-    if (isLoading) return;
+    if (isLoading || !isBackendReady) return;
 
     const finalMessage = textToSend || input;
 
@@ -251,150 +279,194 @@ export function ChatDemo({ className }) {
   };
 
   return (
-    <ChatContainer
-      config={demoChatConfig}
-      // Combines the parent's sizing classes (like w-full h-[550px]) with max-height logic
-      className={cn("h-full overflow-hidden", className)}
-    >
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between bg-white/50 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
-            <Bot className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-black">AutoFix</div>
-            <div className="flex items-center gap-1.5 text-[11px] text-neutral-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Online · replies in ~5s
+    <>
+      {!isBackendReady && isHovering && (
+        <div
+          className="fixed z-50 pointer-events-none px-3 py-1.5 bg-neutral-900/90 text-white text-[12px] font-medium rounded-lg shadow-xl backdrop-blur-sm whitespace-nowrap"
+          style={{
+            left: mousePos.x + 16,
+            top: mousePos.y + 16,
+          }}
+        >
+          Backend waking up... Please wait
+        </div>
+      )}
+
+      <ChatContainer
+        config={demoChatConfig}
+        className={cn("h-full overflow-hidden relative", className)}
+        // --- NEW MOUSE EVENT HANDLERS ---
+        onMouseMove={(e) => {
+          if (!isBackendReady) {
+            setMousePos({ x: e.clientX, y: e.clientY });
+          }
+        }}
+        onMouseEnter={() => {
+          if (!isBackendReady) setIsHovering(true);
+        }}
+        onMouseLeave={() => {
+          setIsHovering(false);
+        }}
+      >
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between bg-white/50 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center">
+              <Bot className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-black">AutoFix</div>
+              <div className="flex items-center gap-1.5 text-[11px] text-neutral-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Online · replies in ~5s
+              </div>
             </div>
           </div>
+          <div className="text-[10px] uppercase tracking-widest font-semibold text-neutral-400">
+            Demo
+          </div>
         </div>
-        <div className="text-[10px] uppercase tracking-widest font-semibold text-neutral-400">
-          Demo
-        </div>
-      </div>
 
-      {/* Messages Container */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto px-6 py-6 space-y-6 min-h-0 scroll-smooth"
-      >
-        {messages.map((m, index) => {
-          if (m.role === "user") {
+        {/* backend ready check message */}
+        {isCheckingBackend && (
+          <div className="mx-6 mt-4 rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3">
+            <p className="text-sm font-medium text-black">
+              Preparing AutoFix AI
+            </p>
+            <p className="mt-1 text-xs text-black">
+              This demo is hosted on <strong>Render's free tier.</strong> The
+              first startup may take up to 60 seconds.
+            </p>
+          </div>
+        )}
+
+        {/* Messages Container */}
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto px-6 py-6 space-y-6 min-h-0 scroll-smooth"
+        >
+          {messages.map((m, index) => {
+            if (m.role === "user") {
+              return (
+                <div key={index} className="flex justify-end">
+                  <div className="max-w-[75%] text-[15px] text-black bg-white border border-[var(--color-border)] px-4 py-2 rounded-2xl rounded-tr-sm break-words">
+                    {m.text}
+                  </div>
+                </div>
+              );
+            }
+
             return (
-              <div key={index} className="flex justify-end">
-                <div className="max-w-[75%] text-[15px] text-black bg-white border border-[var(--color-border)] px-4 py-2 rounded-2xl rounded-tr-sm break-words">
-                  {m.text}
+              <div key={index} className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 mt-1">
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
+                <div className="max-w-[80%] pt-1 break-words">
+                  <div className="prose prose-sm max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        table: ({ node, ...props }) => (
+                          <div className="overflow-x-auto my-4 pb-2 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-neutral-400">
+                            <table
+                              className="min-w-full border-collapse border border-[var(--color-border)] text-sm"
+                              {...props}
+                            />
+                          </div>
+                        ),
+                        thead: ({ node, ...props }) => (
+                          <thead className="bg-black/5" {...props} />
+                        ),
+                        th: ({ node, ...props }) => (
+                          <th
+                            className="border border-[var(--color-border)] px-4 py-2 text-left font-semibold text-black"
+                            {...props}
+                          />
+                        ),
+                        td: ({ node, ...props }) => (
+                          <td
+                            className="border border-[var(--color-border)] px-4 py-2"
+                            {...props}
+                          />
+                        ),
+                      }}
+                    >
+                      {m.text}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </div>
             );
-          }
+          })}
 
-          return (
-            <div key={index} className="flex gap-3">
+          {isLoading && (
+            <div className="flex gap-3">
               <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 mt-1">
                 <Bot className="w-4 h-4 text-white" />
               </div>
-              <div className="max-w-[80%] pt-1 break-words">
-                <div className="prose prose-sm max-w-none">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      table: ({ node, ...props }) => (
-                        <div className="overflow-x-auto my-4 pb-2 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-neutral-400">
-                          <table
-                            className="min-w-full border-collapse border border-[var(--color-border)] text-sm"
-                            {...props}
-                          />
-                        </div>
-                      ),
-                      thead: ({ node, ...props }) => (
-                        <thead className="bg-black/5" {...props} />
-                      ),
-                      th: ({ node, ...props }) => (
-                        <th
-                          className="border border-[var(--color-border)] px-4 py-2 text-left font-semibold text-black"
-                          {...props}
-                        />
-                      ),
-                      td: ({ node, ...props }) => (
-                        <td
-                          className="border border-[var(--color-border)] px-4 py-2"
-                          {...props}
-                        />
-                      ),
-                    }}
-                  >
-                    {m.text}
-                  </ReactMarkdown>
-                </div>
+              <div className="flex items-center gap-1 pt-3">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400 [animation-delay:120ms]" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400 [animation-delay:240ms]" />
               </div>
             </div>
-          );
-        })}
+          )}
+        </div>
 
-        {isLoading && (
-          <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 mt-1">
-              <Bot className="w-4 h-4 text-white" />
+        {/* Input Section */}
+        <div className="px-4 py-4 bg-[var(--color-background)] border-t border-[var(--color-border)] flex-shrink-0 space-y-3">
+          {messages.length === 1 && (
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => send(s)}
+                  disabled={isLoading || !isBackendReady}
+                  className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-[12px] text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-50 whitespace-nowrap disabled:cursor-not-allowed"
+                >
+                  {s}
+                </button>
+              ))}
             </div>
-            <div className="flex items-center gap-1 pt-3">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400" />
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400 [animation-delay:120ms]" />
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400 [animation-delay:240ms]" />
-            </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* Input Section */}
-      <div className="px-4 py-4 bg-[var(--color-background)] border-t border-[var(--color-border)] flex-shrink-0 space-y-3">
-        {messages.length === 1 && (
-          <div className="flex flex-wrap gap-2">
-            {SUGGESTED.map((s) => (
-              <button
-                key={s}
-                onClick={() => send(s)}
-                disabled={isLoading}
-                className="rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-[12px] text-neutral-600 hover:bg-neutral-50 transition-colors disabled:opacity-50 whitespace-nowrap"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send();
-          }}
-          className="relative flex items-center gap-2"
-        >
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Message AutoFix..."
-            disabled={isLoading}
-            className="flex-1 bg-white rounded-2xl border border-[var(--color-border)] px-4 py-2 text-[15px] outline-none placeholder:text-neutral-400 disabled:opacity-50"
-          />
-
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className={cn(
-              "w-9 h-9 rounded-full text-white flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-50",
-              input.trim()
-                ? "bg-[var(--color-primary)] hover:scale-105"
-                : "bg-[var(--color-buttonDisabled)]"
-            )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send();
+            }}
+            className="relative flex items-center gap-2"
           >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
-      </div>
-    </ChatContainer>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                isBackendReady ? "Message AutoFix..." : "Waking up backend..."
+              }
+              disabled={isLoading || !isBackendReady}
+              className="flex-1 bg-white rounded-2xl border border-[var(--color-border)] px-4 py-2 text-[15px] outline-none placeholder:text-neutral-400 disabled:opacity-50"
+            />
+
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim() || !isBackendReady}
+              className={cn(
+                "w-9 h-9 rounded-full text-white flex items-center justify-center transition-all flex-shrink-0 disabled:opacity-50",
+                input.trim()
+                  ? "bg-[var(--color-primary)] hover:scale-105"
+                  : "bg-[var(--color-buttonDisabled)]"
+              )}
+            >
+              {isBackendReady ? (
+                <Send className="w-4 h-4" />
+              ) : (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              )}
+            </button>
+          </form>
+        </div>
+      </ChatContainer>
+    </>
   );
 }
