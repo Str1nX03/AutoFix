@@ -8,3 +8,4 @@ huggingface-hub>=0.24.0
 huggingface_hub
 numpy
 aiohttp
+pandas

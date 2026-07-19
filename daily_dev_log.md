@@ -37,3 +37,23 @@
 * Removed hardcoded API secrets from `agents_src/agent/research.ipynb` and replaced them with dynamic `python-dotenv` variables to resolve GitHub Push Protection blocks.
 * Centralized all project secrets into a single, unified `.env` file at the root directory by merging `database/.env` and `.env_example`.
 * Updated `database/db.py`, `database/rag_retriever.py`, and `database/utils.py` to target the root `.env` file, enabling secure execution from any directory.
+
+## Date: July 16, 2026
+
+### 1. Real-World Data Migration
+* Transitioned from the 250-row synthetic dataset to a real-world dataset (`razer_products_data.csv`).
+* Updated `database/upload_250_products.py` to dynamically read from the new dataset.
+* Added `pandas` to `database/requirements.txt` for CSV parsing.
+* Added a 3-attempt retry loop with exponential backoff in `upload_250_products.py` to seamlessly catch and recover from Hugging Face API `504 Gateway Time-out` errors during large bulk uploads.
+* Cleaned up deprecated `ProductEmbedding` imports in `database/init_db.py`.
+
+## Date: July 19, 2026
+
+### 1. Semantic RAG Improvements for Broad Queries
+* Removed the strict `0.08` cosine distance margin filter in `database/rag_retriever.py` to allow the system to successfully answer broad, generic queries (e.g., "how many mice do you have?").
+* Increased candidate fetching limits from `10` to `50` to ensure no relevant products are missed during stage 1 retrieval.
+* Removed the aggressive `shown_products` filtering logic in `support_agent.py` so the agent never forcibly hides valid products from users who are exploring options in the same category.
+
+### 2. Agent Output Parsing Fixes
+* Replaced `with_structured_output` JSON schema enforcement with a simpler `StrOutputParser` in `support_agent.py` to stop Groq from hallucinating and crashing with `tool_use_failed` errors.
+* Fixed Jupyter Notebook parsing logic in `agents_src/agent/research.ipynb` to properly accept and render string responses.
