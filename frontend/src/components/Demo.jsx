@@ -169,15 +169,20 @@ export function ChatDemo({ className }) {
   const sessionId = useRef(null);
 
   useEffect(() => {
+    console.log("isCheckingBackend:", isCheckingBackend);
+    console.log("isBackendReady:", isBackendReady);
+  }, [isCheckingBackend, isBackendReady]);
+
+  useEffect(() => {
     let id = sessionStorage.getItem("chat-session-id");
 
-    if(!id) {
+    if (!id) {
       id = crypto.randomUUID();
       sessionStorage.setItem("chat-session-id", id);
     }
 
     sessionId.current = id;
-  }, [])
+  }, []);
 
   const [messages, setMessages] = useState([
     {
@@ -191,7 +196,7 @@ export function ChatDemo({ className }) {
 
     const checkBackend = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`, {
+        const res = await fetch("/api/health", {
           cache: "no-store",
         });
 
