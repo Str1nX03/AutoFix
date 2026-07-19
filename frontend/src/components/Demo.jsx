@@ -92,7 +92,6 @@ const SUGGESTED = [
   "Which tools do you integrate with?",
 ];
 
-// Define your color theme using the Config system
 const demoChatConfig = {
   primary: { color: "#ef4d00" },
   background: { color: "#f7f3ed" },
@@ -167,10 +166,18 @@ export function ChatDemo({ className }) {
 
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
+  const sessionId = useRef(null);
 
-  const sessionId = useRef(
-    crypto.randomUUID?.() || Math.random().toString(36).slice(2)
-  );
+  useEffect(() => {
+    let id = sessionStorage.getItem("chat-session-id");
+
+    if(!id) {
+      id = crypto.randomUUID();
+      sessionStorage.setItem("chat-session-id", id);
+    }
+
+    sessionId.current = id;
+  }, [])
 
   const [messages, setMessages] = useState([
     {
@@ -184,17 +191,22 @@ export function ChatDemo({ className }) {
 
     const checkBackend = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
-        const contentType = res.headers.get("content-type");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`, {
+          cache: "no-store",
+        });
 
-        if (res.ok && contentType && contentType.includes("application/json")) {
+        console.log("Health:", res.status);
+
+        if (res.ok) {
+          console.log("Backend ready");
+
           setIsBackendReady(true);
           setIsCheckingBackend(false);
           setIsHovering(false);
           clearInterval(interval);
         }
       } catch (error) {
-        console.log("Backend sleeping....");
+        console.log("Health request failed", error);
       }
     };
     checkBackend();
@@ -339,6 +351,10 @@ export function ChatDemo({ className }) {
             </p>
           </div>
         )}
+
+        {/* <div className="mx-6 mt-4 rounded-xl border border-yellow-300 bg-yellow-50 px-4 py-3">
+          <p>Preparing AutoFix AI</p>
+        </div> */}
 
         {/* Messages Container */}
         <div
