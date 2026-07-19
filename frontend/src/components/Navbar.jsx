@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Bot, Menu, X } from "lucide-react";
 
-// 1. Moved static data outside the component to prevent recreation on every render
 const navLinks = [
   { name: "Product", href: "#product" },
   { name: "Demo", href: "#demo" },
@@ -16,19 +15,17 @@ const navLinks = [
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("product");
-
-  // 2. Use a ref instead of state to prevent unnecessary re-renders during smooth scroll
   const isScrollingRef = useRef(false);
 
   useEffect(() => {
-    // 1. Combine navLink IDs with the IDs of sections where the highlight should turn off
+    
     const observedIds = [
       ...navLinks.map((link) => link.href.replace("#", "")),
-      "FinalCTA", // ID for your Contact section
-      "feedback", // <-- IMPORTANT: Replace this with the actual ID of your Feedback section!
+      "FinalCTA", 
+      "feedback", 
     ];
 
-    // 2. Map the extended list of IDs to their DOM elements
+    
     const sections = observedIds
       .map((id) => document.getElementById(id))
       .filter(Boolean);
@@ -117,7 +114,6 @@ export default function Navbar() {
 
         {/* Right Side */}
         <div className="flex items-center gap-2 md:gap-4 font-sans">
-          {/* Book a Demo - Always Visible */}
           <Link
             href="#FinalCTA"
             onClick={(e) => handleScroll(e, "#FinalCTA")}
@@ -133,7 +129,7 @@ export default function Navbar() {
             className="lg:hidden p-2 text-black"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
-            aria-expanded={isOpen} // Added accessibility property
+            aria-expanded={isOpen}
           >
             {isOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
           </button>

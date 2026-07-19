@@ -9,7 +9,7 @@ export default function ChatBotUi() {
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Generate a simple random session ID once when the component loads
+  // Generate a simple random session ID once the component loads
   const sessionId = useRef(
     crypto.randomUUID?.() || Math.random().toString(36).slice(2),
   );

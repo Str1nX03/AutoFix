@@ -9,15 +9,15 @@ const SectionSkeleton = () => (
   <div className="h-96 bg-gradient-to-br from-gray-100 to-gray-50 animate-pulse" />
 );
 
-// Lazy load below-the-fold sections with proper loading states
 const Services = dynamic(() => import("@/components/Services"), {
   loading: () => <SectionSkeleton />,
   ssr: true,
 });
-const DemoSection = dynamic(() => import("@/components/Demo"), {
-  loading: () => <SectionSkeleton />,
-  ssr: true,
-});
+// const DemoSection = dynamic(() => import("@/components/Demo"), {
+//   loading: () => <SectionSkeleton />,
+//   ssr: false,
+// });
+import DemoSection from "@/components/Demo";
 const WhyUs = dynamic(() => import("@/components/WhyUS"), {
   loading: () => <SectionSkeleton />,
   ssr: true,
